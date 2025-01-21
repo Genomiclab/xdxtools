@@ -55,6 +55,9 @@ PDX/CDX（患者/细胞系来源异种移植）分析流程。
 ### 从Github 安装
 
 ``` r
+pak::pak("Rhtslib")
+pak::pak("BiocParallel")
+pak::pak("NKI-GCF/XenofilteR")
 pak::pak("rainoffallingstar/beaverdown2")
 ```
 

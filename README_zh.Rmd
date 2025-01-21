@@ -61,6 +61,9 @@ knitr::opts_chunk$set(
 ### 从Github 安装
 
 ``` r
+pak::pak("Rhtslib")
+pak::pak("BiocParallel")
+pak::pak("NKI-GCF/XenofilteR")
 pak::pak("rainoffallingstar/beaverdown2")
 ```
 

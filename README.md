@@ -64,6 +64,9 @@ analysis pipelines.
 ### Install from GitHub
 
 ``` r
+pak::pak("Rhtslib")
+pak::pak("BiocParallel")
+pak::pak("NKI-GCF/XenofilteR")
 pak::pak("rainoffallingstar/beaverdown2")
 ```
 
