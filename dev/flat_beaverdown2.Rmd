@@ -2044,7 +2044,285 @@ test_that("beaver_methrix2sc works", {
 })
 ```
   
+# beaver_enrichr
+    
+```{r function-beaver_enrichr}
+#' Perform EnrichR analysis using ggetrs and visualize results
+#'
+#' This function performs gene set enrichment analysis using the EnrichR API via the `ggetrs` Rust tool.
+#' It queries the specified pathway database, filters results by p-value, and optionally plots the top enriched pathways.
+#' The results are saved in a YAML file and a PDF plot (if requested).
+#'
+#' @param pathwaydb Character. The name of the pathway database to use (e.g., "KEGG_2021_Human"). Default is "KEGG_2021_Human".
+#' @param genes Character vector. The list of gene symbols to be analyzed.
+#' @param output Character. The directory or file path to save the enrichment results. If NULL, a default directory "enrichr" will be created. Default is NULL.
+#' @param filter_p Numeric. The p-value threshold for filtering significant pathways. Default is 0.05.
+#' @param plot Logical. Whether to generate a dot plot of the top enriched pathways. Default is TRUE.
+#' @param top Integer. The number of top pathways to display in the plot. Default is 20.
+#'
+#' @return A data frame containing the filtered enrichment results, including pathway names, p-values, and overlapping genes.
+#'
+#' @details
+#' This function requires the `ggetrs` Rust tool to be installed and accessible via the `cargo` binary.
+#' The function will stop if `ggetrs` is not found. The results are saved in a YAML file and optionally plotted using `ggpubr`.
+#'
+#' @export
+beaver_enrichr <- function(pathwaydb = "KEGG_2021_Human",
+                           genes,
+                           output = NULL,
+                           filter_p = 0.05,
+                           plot = T,
+                           top = 20){
+  #/home/yanhuazheng/.cargo/bin/ggetrs enrichr enrichr -l ontology AP2S1 NSD1 RFX3 > enrichresult.yaml
+  home <- Sys.getenv("HOME")
+  ggetrs <- glue::glue("{home}/.cargo/bin/ggetrs")
+  if (!grepl("/.cargo/",ggetrs)){
+    stop(">> Rust and cargo is not installed, install rustup first.")
+  }
+  if (!grepl("ggetrs",ggetrs)){
+    stop(">> ggetrs is not install, install it by cargo install ggetrs")
+  }
+  if (is.null(output)){
+    output <- glue::glue("enrichr")
+    fs::dir_create(output)
+    output <- glue::glue("{output}/enrichr.yaml")
+  }else{
+    fs::dir_create(output)
+    output <- glue::glue("{output}/enrichr.yaml")
+  }
+  genes <- paste(genes,collapse = " ")
+  enrichr_command <- glue::glue("{ggetrs} enrichr enrichr -l {pathwaydb} {genes} > {output}")
+  #print(enrichr_command)
+  message(glue::glue(">> Quarying EnrichR in {pathwaydb}"))
+  message(glue::glue(">> Quarying EnrichR for genes: {genes}"))
+  system(command = enrichr_command)
+  message(">> Done! convert results...")
+  enrichr_list <- yaml::read_yaml(output)
+  enrichr_list <- enrichr_list[[1]]
+  for (i in 1:length(enrichr_list)){
+    enrichr_list[[i]] <- as.data.frame(enrichr_list[[i]])
+  }
+  enrichr_tbl <- data.table::rbindlist(enrichr_list) %>% 
+    as.data.frame() %>% 
+    dplyr::filter(pvalue < filter_p)
+  npathway <- unique(enrichr_tbl$term_name) %>% 
+    length()
+  message(glue::glue(">> Filter pvalues < {filter_p}, {npathway} sig pathways found."))
   
+  if (npathway > 0){
+    message(">> Reshape enrichr_tbl")
+    reshape_enrichr_tbl <- enrichr_tbl %>% 
+      dplyr::distinct(term_name,.keep_all = T)
+    overlap_genes <- enrichr_tbl$overlapping_genes
+    names(overlap_genes) <- enrichr_tbl$term_name
+    for (i in 1:nrow(reshape_enrichr_tbl)){
+      genes <- overlap_genes[names(overlap_genes) %in% reshape_enrichr_tbl$term_name[i]]
+      genes <- paste0(genes,collapse = ",")
+      reshape_enrichr_tbl$overlapping_genes[i] <- genes
+    }
+    if (plot){
+      message(">> Plotting ...")
+      p <- reshape_enrichr_tbl %>% 
+        dplyr::mutate(direction = "plot") %>% 
+        {
+          .[1:top,]
+        } %>% 
+        dplyr::filter(!is.na(term_name)) %>% 
+      ggpubr::ggdotchart(.,  rotate = TRUE,
+                         x = "term_name", y = "combined_score",
+                         color = "direction",                                # Color by groups
+                         palette = c("#00AFBB", "#E7B800", "#FC4E07"), # Custom color palette
+                         sorting = "ascending",                       # Sort value in descending order
+                         add = "segments",                             # Add segments from y = 0 to dots
+                         add.params = list(color = "lightgray", size = 2), # Change segment color and size
+                         group = "direction",                                # Order by groups
+                         dot.size = 10,                                 # Large dot size
+                         label = round(.[["combined_score"]],1),                        # Add mpg values as dot labels
+                         font.label = list(color = "white", size = 9, 
+                                           vjust = 0.5),               # Adjust label parameters
+                         ggtheme = theme_pubr()                        # ggplot2 theme
+      )+
+        geom_hline(yintercept = 0, linetype = 2, color = "lightgray")
+      print(p)
+      message(">> Save Plot")
+      ggsave(filename = stringr::str_replace(output,".yaml","_plot.pdf"),
+             plot = p,
+             width = 6.69 * 2,
+             height = 4.61* 1.5 )
+    }
+    return(reshape_enrichr_tbl)
+  }else{
+    return(enrichr_tbl)
+  }
+}
+```
+  
+```{r example-beaver_enrichr}
+
+```
+  
+```{r tests-beaver_enrichr}
+test_that("beaver_enrichr works", {
+  expect_true(inherits(beaver_enrichr, "function")) 
+})
+```
+  
+  
+# conflict_network_analysis
+    
+```{r function-conflict_network_analysis}
+#' Perform Conflict Network Analysis for Pathway-Specific Methylation
+#'
+#' This function analyzes the conflict between hyper- and hypo-methylated genes within a specified pathway,
+#' constructs a gene network based on the pathway's edge list, and visualizes the network with node annotations.
+#'
+#' The function performs the following steps:
+#' 1. Identifies hyper- and hypo-methylated genes from the input data frame.
+#' 2. Filters genes based on the specified pathway.
+#' 3. Maps genes to their Entrez IDs and annotates them with methylation direction (hyper, hypo, or bidirectional).
+#' 4. Constructs a subgraph of the pathway's gene network using the filtered genes.
+#' 5. Visualizes the network with nodes colored by methylation direction and labeled with gene symbols.
+#'
+#' @param df Data frame. The input data frame containing methylation results.
+#'           Expected columns include "Term" (or "term_name") and "Genes" (or "overlapping_genes").
+#' @param pathway Character vector. The pathway term(s) to filter the genes.
+#' @param edgelist Data frame. The edge list of the pathway's gene network.
+#'                 Expected columns include "from" and "to" for gene interactions.
+#' @param graph_layout Character. The layout algorithm for plotting the network. Default is "graphopt".
+#'
+#' @return A list containing:
+#'   - `overlap`: A list with hyper-, hypo-, and intersecting genes.
+#'   - `graph`: The igraph object representing the gene network.
+#'   - `ggraph`: The ggraph plot object of the network.
+#'
+#' @details
+#' This function assumes that the input data frame `df` contains columns for pathway terms and gene lists.
+#' The `edgelist` should be a data frame representing the gene interactions within the pathway.
+#' @export
+conflict_network_analysis <- function(df,
+                                      pathway,
+                                      edgelist ,
+                                      graph_layout = 'graphopt'){
+  message(">> Check colnames ...")
+  if("Term" %in% colnames(df)){
+    term <- "Term"
+  }else{
+    term <- "term_name"
+  }
+  
+  if ("Genes" %in% colnames(df)){
+    gene <- "Genes"
+  }else{
+    gene <- "overlapping_genes"
+  }
+  message(">> Decode genes ...")
+  hsc_2ne_overlap <- df %>% 
+    dplyr::filter(.[[term]] %in% pathway) %>% 
+    {
+      temp <- .
+      message(">> hyper methylation Genes are :")
+      hyper <- temp %>% 
+        dplyr::filter(direction == "hyper")
+      print(hyper[[gene]])
+      hyper <- hyper[[gene]] %>% 
+        stringr::str_split(.,";")
+      message(">> hypo methylation Genes are :")
+      hypo <- temp %>% 
+        dplyr::filter(direction == "hypo")
+      print(hypo[[gene]])
+      hypo <- hypo[[gene]] %>% 
+        stringr::str_split(.,";")
+      message(">> check intersect genes are :")
+      print(intersect(hyper[[1]],hypo[[1]]))
+      list(
+        hyper = hyper[[1]],
+        hypo = hypo[[1]],
+        intersect = intersect(hyper[[1]],hypo[[1]])
+      )
+    }
+  
+  # plot Rap1 signaling pathway subnet,出一个id+symbol+hyper/hypo标签
+  hsc_2ne_overlap_id <- hsc_2ne_overlap %>% 
+    {
+      temp <- .
+      message(">> Processing hyper gene")
+      hyperid <- Entrez_Gene_Id_db %>% 
+        dplyr::filter(SYMBOL %in% temp$hyper) %>% 
+        dplyr::mutate(direction = "hyper")
+      message(">> Processing hypo gene")
+      hypoid <- Entrez_Gene_Id_db %>% 
+        dplyr::filter(SYMBOL %in% temp$hypo)%>% 
+        dplyr::mutate(direction = "hypo")
+      combine1 <- rbind(hypoid,hyperid) %>% 
+        dplyr::filter(!(SYMBOL %in% temp$intersect))
+      combine_patch <- rbind(hypoid,hyperid) %>% 
+        dplyr::filter(SYMBOL %in% temp$intersect) %>% 
+        dplyr::distinct(SYMBOL,.keep_all = T) %>% 
+        dplyr::mutate(direction = "bisdirection")
+      rbind(combine1,combine_patch)
+    } %>% 
+    as.data.frame()
+  
+  message(">> Make graphes ...")
+  library(igraph)
+  temp_graph <- edgelist %>% 
+    dplyr::filter(!is.na(.data[["from"]])) %>% 
+    dplyr::filter(!is.na(.data[["to"]]))
+  temp_graph <- temp_graph %>% 
+    igraph::graph_from_data_frame() %>% 
+    igraph::simplify() 
+  message(">> Subset graphes by genes:")
+  subset_vid <- intersect(V(temp_graph)$name,
+                          as.character(unlist(hsc_2ne_overlap_id[["ENTREZID"]]))
+  )
+  #print(str(hsc_2ne_overlap_id))
+  #print(head(V(temp_graph)$name))
+  print(glue::glue("{length(subset_vid)}/{nrow(hsc_2ne_overlap_id)}"))
+  print(subset_vid)
+  temp_graph <- igraph::induced.subgraph(temp_graph,
+                             vids = subset_vid) 
+  # 注释
+  message(">> Create graph done!")
+  Rap1_graph_node_annote <- data.frame(ENTREZID = V(temp_graph)$name) %>% 
+    dplyr::left_join(dplyr::mutate(hsc_2ne_overlap_id,ENTREZID =as.character(ENTREZID)),
+                     by = "ENTREZID") %>% 
+    distinct(ENTREZID,.keep_all = T)
+  
+  temp_graph <- igraph::set_vertex_attr(temp_graph,
+                                        name = "symbol",
+                                        value = Rap1_graph_node_annote$SYMBOL)
+  temp_graph <- igraph::set_vertex_attr(temp_graph,
+                                        name = "direction",
+                                        value = Rap1_graph_node_annote$direction)
+  
+  # plot genetic network 
+  message(">> Plotting ...")
+  library(ggraph)
+  p <- ggraph(temp_graph, layout = graph_layout) +
+    geom_edge_link(arrow = arrow(length = unit(4, 'mm')),
+                   end_cap = circle(2, 'mm')) +
+    geom_node_point(aes(fill = direction, colour = direction),size = 8) +
+    geom_node_text(aes(label = symbol), repel = TRUE) +
+    coord_fixed() +
+    theme_graph(base_family="sans")
+  print(p)
+  return(list(
+    overlap = hsc_2ne_overlap,
+    graph = temp_graph,
+    ggraph = p
+  ))
+}
+```
+  
+```{r example-conflict_network_analysis}
+
+```
+  
+```{r tests-conflict_network_analysis}
+test_that("conflict_network_analysis works", {
+  expect_true(inherits(conflict_network_analysis, "function")) 
+})
+```
   
 
 # Inflate your package

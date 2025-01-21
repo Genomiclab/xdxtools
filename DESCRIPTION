@@ -12,9 +12,13 @@ Depends:
 Imports: 
     BiocParallel,
     blastula,
+    data.table,
     dplyr,
     fs,
+    ggpubr,
+    ggraph,
     glue,
+    igraph,
     magrittr,
     methrix,
     openssl,

@@ -3,6 +3,7 @@ flat_beaverdown2.Rmd:
   state: active
   R:
   - R/beaver_engine_detect.R
+  - R/beaver_enrichr.R
   - R/beaver_findunpairedread.R
   - R/beaver_mail.R
   - R/beaver_methrix2sc.R
@@ -12,6 +13,7 @@ flat_beaverdown2.Rmd:
   - R/beaver_rsync.R
   - R/beaverflow_install.R
   - R/beavergandalf.R
+  - R/conflict_network_analysis.R
   - R/cpu_detect.R
   - R/file_agg.R
   - R/mem_detect.R
@@ -37,6 +39,8 @@ flat_beaverdown2.Rmd:
   - tests/testthat/test-beaver_rsync.R
   - tests/testthat/test-beaverflow_install.R
   - tests/testthat/test-beaver_methrix2sc.R
+  - tests/testthat/test-beaver_enrichr.R
+  - tests/testthat/test-conflict_network_analysis.R
   vignettes: vignettes/get-started.Rmd
   inflate:
     flat_file: dev/flat_beaverdown2.Rmd
