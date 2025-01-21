@@ -56,6 +56,8 @@ PDX/CDX（患者/细胞系来源异种移植）分析流程。
 
 ``` r
 pak::pak("Rhtslib")
+pak::pak('CompEpigen/scMethrix')
+pak::pak('CompEpigen/methrix')
 pak::pak("BiocParallel")
 pak::pak("NKI-GCF/XenofilteR")
 pak::pak("rainoffallingstar/beaverdown2")

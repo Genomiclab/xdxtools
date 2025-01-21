@@ -173,10 +173,22 @@ library(beaverdown2)
 ```
 
   
+
+# beaver_methrix2sc
+    
+  
+```{r example-beaver_methrix2sc}
+
+```
+
+  
+  
+  
   
 
-
 # Inflate your package
+
+  
 
 You're one inflate from paper to box.
 Build your package from this very Rmd using `fusen::inflate()`
