@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rnaseq_step1
+  namespace: default
+  labels:
+    app: rnaseq_step1
+spec:
+  template:
+    metadata:
+      name: rnaseq_step1
+      labels:
+        app: rnaseq_step1
+    spec:
+      containers:
+      - name: rnaseq_step1
+        image: fallingstar10/beavercraft:latest
+        command:
+        - sh
+        - -c
+        - cd /home/builduser/beaverflow && snakemake  --snakefile  BeaverRNA_step1.snakemake --configfile config.yaml
+        resources:
+          requests:
+            cpu: '20'
+            memory: 100Gi
+          limits:
+            cpu: '20'
+            memory: 100Gi
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: userspace
+          mountPath: /home/builduser/beaverflow/userspace/taskid
+        - name: inst
+          mountPath: /home/builduser/beaverflow/inst
+      volumes:
+      - name: localtime
+        hostPath: /etc/localtime
+      - name: userspace
+        hostPath: userspace/taskid
+      - name: inst
+        mountPath: inst
+      restartPolicy: Never
+      dnsPolicy: ClusterFirst

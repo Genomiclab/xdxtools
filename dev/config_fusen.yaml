@@ -1,0 +1,46 @@
+flat_beaverdown2.Rmd:
+  path: dev/flat_beaverdown2.Rmd
+  state: active
+  R:
+  - R/beaver_engine_detect.R
+  - R/beaver_findunpairedread.R
+  - R/beaver_mail.R
+  - R/beaver_packbismark.R
+  - R/beaver_packhtseq.R
+  - R/beaver_packxenofilter.R
+  - R/beaver_rsync.R
+  - R/beaverflow_install.R
+  - R/beavergandalf.R
+  - R/cpu_detect.R
+  - R/file_agg.R
+  - R/mem_detect.R
+  - R/revcompstring.R
+  - R/update_gandalf.R
+  - R/use_server_pdata.R
+  - R/use_sever_fastq.R
+  tests:
+  - tests/testthat/test-mem_detect.R
+  - tests/testthat/test-cpu_detect.R
+  - tests/testthat/test-beaver_mail.R
+  - tests/testthat/test-use_sever_fastq.R
+  - tests/testthat/test-use_server_pdata.R
+  - tests/testthat/test-beaver_engine_detect.R
+  - tests/testthat/test-revcompstring.R
+  - tests/testthat/test-file_agg.R
+  - tests/testthat/test-beavergandalf.R
+  - tests/testthat/test-update_gandalf.R
+  - tests/testthat/test-beaver_findunpairedread.R
+  - tests/testthat/test-beaver_packhtseq.R
+  - tests/testthat/test-beaver_packbismark.R
+  - tests/testthat/test-beaver_packxenofilter.R
+  - tests/testthat/test-beaver_rsync.R
+  - tests/testthat/test-beaverflow_install.R
+  vignettes: vignettes/get-started.Rmd
+  inflate:
+    flat_file: dev/flat_beaverdown2.Rmd
+    vignette_name: Get started
+    open_vignette: true
+    check: true
+    document: true
+    overwrite: ask
+    clean: ask

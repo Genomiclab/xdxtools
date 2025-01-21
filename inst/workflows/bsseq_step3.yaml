@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bsseq_step3
+  namespace: default
+  labels:
+    app: bsseq_step3
+spec:
+  template:
+    metadata:
+      name: bsseq_step3
+      labels:
+        app: bsseq_step3
+    spec:
+      containers:
+      - name: bsseq_step3
+        image: fallingstar10/beavercraft:latest
+        command:
+        - sh
+        - -c
+        - cd /beaverflow && snakemake  --snakefile  bsseq_step3.snakemake --configfile config.yaml
+        resources:
+          requests:
+            cpu: '20'
+            memory: 400Gi
+          limits:
+            cpu: '20'
+            memory: 400Gi
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: userspace
+          mountPath: /beaverflow/userspace/taskid
+        - name: inst
+          mountPath: /beaverflow/inst
+      volumes:
+      - name: localtime
+        hostPath: /etc/localtime
+      - name: userspace
+        hostPath: userspace/taskid
+      - name: inst
+        mountPath: inst
+      restartPolicy: Never
+      dnsPolicy: ClusterFirst

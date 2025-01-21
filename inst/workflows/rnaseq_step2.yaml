@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rnaseq_step2
+  namespace: default
+  labels:
+    app: rnaseq_step2
+spec:
+  template:
+    metadata:
+      name: rnaseq_step2
+      labels:
+        app: rnaseq_step2
+    spec:
+      containers:
+      - name: rnaseq_step2
+        image: fallingstar10/beavercraft:latest
+        command:
+        - sh
+        - -c
+        - cd /beaverflow && snakemake  --snakefile  BeaverRNA_step2.snakemake --configfile config.yaml
+        resources:
+          requests:
+            cpu: '65'
+            memory: 600Gi
+          limits:
+            cpu: '65'
+            memory: 600Gi
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: userspace
+          mountPath: /beaverflow/userspace/taskid
+        - name: inst
+          mountPath: /beaverflow/inst
+      volumes:
+      - name: localtime
+        hostPath: /etc/localtime
+      - name: userspace
+        hostPath: userspace/taskid
+      - name: inst
+        mountPath: inst
+      restartPolicy: Never
+      dnsPolicy: ClusterFirst

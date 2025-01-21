@@ -1,0 +1,43 @@
+#configfile: "config/config.yaml"
+
+SIDs = config["SIDs"]
+species = config["species"]
+chrs = config["chrs"]
+# 运行所有流程时，rule all 需要加入所有的output汇总
+rule all:
+  input:
+    expand(os.path.join(config["qcDir_before"], "{sample}_R1_fastqc.zip"), sample=SIDs),
+    expand(os.path.join(config["qcDir_before"], "{sample}_R2_fastqc.zip"), sample=SIDs),
+    expand(os.path.join(config["qcDir_before"], "{sample}_R1_fastqc.html"), sample=SIDs),
+    expand(os.path.join(config["qcDir_before"], "{sample}_R2_fastqc.html"), sample=SIDs),
+    expand(os.path.join(config["trimDir"], "{sample}_val_1.fq.gz"),sample = SIDs),
+    expand(os.path.join(config["trimDir"], "{sample}_val_2.fq.gz"),sample = SIDs),
+    expand(os.path.join(config["trimDir"], "{sample}_R1.fastq.gz_trimming_report.txt"),sample = SIDs),
+    expand(os.path.join(config["trimDir"], "{sample}_R2.fastq.gz_trimming_report.txt"),sample = SIDs),
+    expand(os.path.join(config["qcDir_after"], "{sample}_val_1_fastqc.zip"), sample=SIDs),
+    expand(os.path.join(config["qcDir_after"], "{sample}_val_2_fastqc.zip"), sample=SIDs),
+    expand(os.path.join(config["qcDir_after"], "{sample}_val_1_fastqc.html"), sample=SIDs),
+    expand(os.path.join(config["qcDir_after"], "{sample}_val_2_fastqc.html"), sample=SIDs),
+    expand(os.path.join(config["qcDir"], "{sample}_seqkit_stat.txt"), sample=SIDs) ,
+    os.path.join(config["SID_log"], "step1_success.txt")
+    
+
+# 第一次QC
+include: "rules/01fastqcAtfirst.smk"
+
+# Trim
+include: "rules/02fastq2trim.smk"
+
+# 第二次QC
+include: "rules/03-0-fastqcAtclean.smk"
+
+#seqkit
+include: "rules/03-1-seqkit.smk"
+
+# step checker
+
+include: "rules/rnaseq_step1_checker.smk"
+
+
+
+

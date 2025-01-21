@@ -1,0 +1,2011 @@
+---
+title: "flat_beaverdown2.Rmd for working package"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+<!-- Run this 'development' chunk -->
+<!-- Store every call to library() that you need to explore your functions -->
+
+```{r development, include=FALSE}
+library(testthat)
+```
+
+# mem_detect
+    
+```{r function-mem_detect}
+#' detect mem
+#' 
+#' detect memory usage in current session
+#' 
+#' @return memory usage
+#' 
+#' @export
+mem_detect <- function(){
+  mem <- ps::ps_memory_full_info()
+  mem <- mem["rss"]/1024/1024
+  return(mem)
+}
+```
+  
+```{r example-mem_detect}
+
+```
+  
+```{r tests-mem_detect}
+test_that("mem_detect works", {
+  expect_true(inherits(mem_detect, "function")) 
+})
+```
+  
+# cpu_detect
+    
+```{r function-cpu_detect}
+#' detect cpu cores
+#' 
+#' Description
+#' 
+#' @return avaible cores num
+#' 
+#' @export
+cpu_detect <- function(){
+  cores <- parallel::detectCores()
+  return(cores)
+}
+```
+  
+```{r example-cpu_detect}
+
+```
+  
+```{r tests-cpu_detect}
+test_that("cpu_detect works", {
+  expect_true(inherits(cpu_detect, "function")) 
+})
+```
+    
+# beaver_mail
+    
+```{r function-beaver_mail}
+#' Send an email notification using the blastula package
+#'
+#' This function composes and sends an email notification to inform the recipient that a specific job step has been completed.
+#' It utilizes the blastula package for email composition and sending, and requires credentials for authentication.
+#'
+#' @param jobid The ID of the job being processed.
+#' @param step The step number of the job that has been completed.
+#' @param send_from The email address to send the notification from. Defaults to "BeaversBot@outlook.com".
+#' @param send_to The email address to send the notification to.
+#' @param creds_files The file containing the credentials for email authentication.
+#'
+#' @return The function does not return any value, but it sends an email.
+#'
+#' @export
+beaver_mail <- function(jobid,
+                        step,
+                        send_from = "BeaversBot@outlook.com",
+                        send_to,
+                        creds_files){
+  date_time <- blastula::add_readable_time()
+  email <- blastula::compose_email(
+    body = blastula::md(glue::glue(
+      "Hello,Dear USERs!
+your Job {jobid} is running in the BeaverBoard, and step {step} is done!
+
+Best wishes,
+
+BeaverBoard Team.
+")),
+    footer = blastula::md(glue::glue("Email sent on {date_time}."))
+  )
+  email %>% 
+    blastula::smtp_send(
+      to = send_to,
+      from = send_from,
+      subject = glue::glue("Process Report : step {step} is done."),
+      credentials = creds_file(creds_files)
+    )
+}
+```
+  
+```{r example-beaver_mail}
+
+```
+  
+```{r tests-beaver_mail}
+test_that("beaver_mail works", {
+  expect_true(inherits(beaver_mail, "function")) 
+})
+```
+
+
+  
+# use_sever_fastq
+    
+```{r function-use_sever_fastq}
+#' Check the status of uploaded files and server path, and return relevant information
+#'
+#' This function checks whether an uploaded file is provided and whether a server path exists.
+#' If an uploaded file is present, it returns the file. If the server path does not exist, it returns
+#' a "notfound" message. Otherwise, it lists the fastq files in the server path and returns a data frame
+#' with the file names and paths.
+#'
+#' @param uploadfile The uploaded file object.
+#' @param serverpath The path to the server directory containing fastq files.
+#'
+#' @return Either the uploaded file object, a "notfound" message, or a data frame with fastq file names and paths.
+#'
+#' @export
+use_sever_fastq <- function(uploadfile = NULL,
+                            serverpath){
+  uploadstatus <- is.null(uploadfile)
+  serverstatus <- dir.exists(serverpath)
+  if (!uploadstatus){
+    return(uploadfile)
+  }else if(!serverstatus){
+    return(data.frame(name = "NA",filepath = "NA"))
+  }else{
+    fastqfilespath <- list.files(serverpath,full.names = T)
+    fastqfilename <- list.files(serverpath,full.names = F)
+    df <- data.frame(
+      name = fastqfilename,
+      filepath = fastqfilespath
+    )
+    return(df)
+  }
+}
+```
+  
+```{r example-use_sever_fastq}
+
+```
+  
+```{r tests-use_sever_fastq}
+test_that("use_sever_fastq works", {
+  expect_true(inherits(use_sever_fastq, "function")) 
+})
+```
+  
+# use_server_pdata
+    
+```{r function-use_server_pdata}
+#' Retrieve pdata file path based on upload status and server path
+#'
+#' This function determines the source of pdata based on whether an upload file is provided and whether a server path exists.
+#' If an upload file is present, it returns the upload file. If the server path does not exist, it returns a "notfound" message.
+#' Otherwise, it returns a list containing the server path to the pdata file.
+#'
+#' @param uploadfile The uploaded pdata file object.
+#' @param serverpath The path to the server directory where the pdata file might be stored.
+#'
+#' @return Either the uploaded pdata file object, a "notfound" message, or a list containing the server path to the pdata file.
+#'
+#' @export
+use_server_pdata <- function(uploadfile = NULL,
+                             serverpath){
+  uploadstatus <- is.null(uploadfile)
+  serverstatus <- file.exists(serverpath)
+  if (!uploadstatus){
+    filepath <- uploadfile$filepath
+  }else if(!serverstatus){
+    filepath = "notfound"
+  }else{
+    filepath = serverpath
+  }
+  if (filepath != "notfound"){
+    data <- readxl::read_excel(path = serverpath)
+    if ("样本编号" %in% colnames(data)){
+      colnames(data)[4] <- "sampleid"
+      colnames(data)[7] <- "inline_barcode_sequence"
+    }
+    return(data)
+  }else{
+    return(data.frame(sampleid = "NA",inline_barcode_sequence = "NA"))
+  }
+}
+```
+  
+```{r example-use_server_pdata}
+
+```
+  
+```{r tests-use_server_pdata}
+test_that("use_server_pdata works", {
+  expect_true(inherits(use_server_pdata, "function")) 
+})
+```
+  
+# beaver_engine_detect
+    
+```{r function-beaver_engine_detect}
+#' Detect the computing environment (k8s, slurm, or container)
+#'
+#' This function attempts to determine the type of computing environment by checking for the presence
+#' of specific commands associated with Kubernetes (k8s) and Slurm. If neither command is found, it
+#' defaults to assuming a container environment.
+#'
+#' @return A character string indicating the detected environment: "k8s", "slurm", or "container".
+#'
+#' @export
+beaver_engine_detect <- function(){
+  k8s_try <- try(system(command = "kubectl version",intern = T))
+  srun_try <- try(system(command = "srun -V",intern = T))
+  if (class(k8s_try) != "try-error"){
+    return("k8s")
+  }else if (class(srun_try) != "try-error"){
+    return("slurm")
+  }else{
+    return("container")
+  }
+}
+```
+  
+```{r example-beaver_engine_detect}
+
+```
+  
+```{r tests-beaver_engine_detect}
+test_that("beaver_engine_detect works", {
+  expect_true(inherits(beaver_engine_detect, "function")) 
+})
+```
+
+# revCompString
+    
+```{r function-revCompString}
+#' Reverse complement a DNA sequence or vector of DNA sequences
+#'
+#' This function takes a DNA sequence or a vector of DNA sequences and returns their reverse complements.
+#' It converts the input to uppercase, uses a lookup table to replace each nucleotide with its complement,
+#' and then reverses the resulting string.
+#'
+#' @param strings A single DNA sequence or a vector of DNA sequences to be reverse complemented.
+#'
+#' @return A character vector with the reverse complements of the input sequences.
+#'
+#' @export
+revCompString <- function(strings){
+  
+  toupper <- function (x) {
+    if (!is.character(x)) 
+      x <- as.character(x)
+    .Internal(toupper(x))
+  }
+  revString <- function(strings){
+    
+    strings = as.character(strings)
+    res = as.character(lapply(strings, function(x) paste(rev(strsplit(x, "")[[1]]), collapse = "")))
+    return(res)
+  }
+  
+  strings = toupper(strings)	
+  idx = data.frame(to = c("T", "C", "G", "A", "N"), row.names = c("A", "G", "C", "T", "N"))
+  res = as.character(sapply(strings, function(x) revString(paste(as.character(idx[strsplit(x, "")[[1]], "to"]), collapse = ""))))
+  # chars = strsplit(strings, "")[[1]]
+  # res = revString(paste(as.character(idx[chars, "to"]), collapse = ""))
+  return(res)
+}
+```
+  
+```{r example-revCompString}
+
+```
+  
+```{r tests-revCompString}
+test_that("revcompstring works", {
+  expect_true(inherits(revCompString, "function")) 
+})
+```
+  
+# file_agg
+    
+```{r function-file_agg}
+#' Aggregate and Compress Files in a Directory
+#'
+#' This function aggregates all files within a specified directory (including subdirectories) and compresses them into a single archive file.
+#' The function returns a list containing the root path, a data frame with file information, and the path to the compressed file.
+#'
+#' @param path \code{character} The root directory path to search for files.
+#' @param method \code{character} The compression method to use. Options are \code{"gzip"} for \code{.tar.gz} compression or \code{"zip"} for \code{.zip} compression. Default is \code{"gzip"}.
+#' @return A list with the following components:
+#'   \item{rootpath}{The root directory path.}
+#'   \item{filedf}{A data frame containing two columns: \code{name} (file names) and \code{filepath} (full paths of the files).}
+#'   \item{compressfile}{The path to the compressed file.}
+#' @note If no files are found in the specified directory, an empty data frame is returned.
+#' @examples
+#' # Example usage:
+#' result <- file_agg(path = "/path/to/directory", method = "zip")
+#' print(result$compressfile)
+#'
+#' # Example with gzip compression:
+#' result <- file_agg(path = "/path/to/directory", method = "gzip")
+#' print(result$compressfile)
+#'
+#' @export
+file_agg <- function(path, method = c("gzip", "zip")) {
+  
+  files <- list.files(path = path,
+                      full.names = TRUE,
+                      recursive = TRUE)
+  if (length(files) == 0) {
+    return(data.frame())
+  } else {
+    filenames <- basename(files)
+    df <- data.frame(
+      name = filenames,
+      filepath = files
+    )
+    message(">> Compress files")
+    if (method == "zip") {
+      zip(zipfile = paste0(path, "/result.zip"),
+          files = files)
+      gzfile = paste0(path, "/result.zip")
+    } else {
+      tar(tarfile = paste0(path, "/result.tar.gz"),
+          files = files,
+          compression = "gzip")
+      gzfile = paste0(path, "/result.tar.gz")  # Fix incorrect assignment
+    }
+    return(
+      list(
+        rootpath = path,
+        filedf = df,
+        compressfile = gzfile
+      )
+    )
+  }
+}
+```
+  
+```{r example-file_agg}
+
+```
+  
+```{r tests-file_agg}
+test_that("file_agg works", {
+  expect_true(inherits(file_agg, "function")) 
+})
+```
+  
+# BeaverGandalf
+    
+```{r function-BeaverGandalf}
+#' BeaverGandalf: A Workflow Manager for Bioinformatics Pipelines
+#'
+#' This R6 class manages and orchestrates bioinformatics workflows, including
+#' data processing, quality control, and analysis. It supports multiple modes
+#' (e.g., RRBS, BSseq, RNAseq) and can handle PDX (Patient-Derived Xenograft)
+#' pipelines. The class is designed to work with Snakemake workflows and can
+#' run on different computing environments (e.g., Kubernetes, Slurm).
+#' @field Mode The mode of the pipeline (e.g., "RRBS", "BSSEQ", "RNASEQ").
+#' @field species The species being analyzed (e.g., "human", "mouse").
+#' @field species1 species1
+#' @field species2  species2
+#' @field host host 
+#' @field cgGR_gz cgGR_gz
+#' @field CGIRData CGIRData
+#' @field CCGG CCGG 
+#' @field hg19_genomeFile hg19_genomeFile
+#' @field qcDir_before qcDir_before
+#' @field qcDir_after qcDir_after
+#' @field bsmapDir_bamtmp bsmapDir_bamtmp
+#' @field samples A vector of sample IDs.
+#' @field uploadfile A data frame containing file paths and names.11
+#' @field run_log A vector storing runtime logs.
+#' @field init_log A vector storing initialization logs.
+#' @field yaml_file The path to the YAML configuration file.
+#' @field userid A unique user ID for the workflow.
+#' @field user_email The email address for notifications.
+#' @field PDX_pipeline A logical indicating whether PDX mode is enabled.
+#' @field fastqDir The directory for FASTQ files.
+#' @field adapter1 Adapter sequences for trimming.
+#' @field adapter2 Adapter sequences for trimming.
+#' @field cgGR Paths to reference data files (e.g., CpG sites, CGI).
+#' @field CGI Paths to reference data files (e.g., CpG sites, CGI).
+#' @field CpG Paths to reference data files (e.g., CpG sites, CGI).
+#' @field genomeFile Paths to genome files.
+#' @field gnome_fasta Paths to genome files.
+#' @field rnaseq_gtf Paths to RNAseq reference files.
+#' @field rnaseq_ref Paths to RNAseq reference files.
+#' @field workflow_endpoint A named logical vector indicating the workflow endpoint.
+#' @field chrs A vector of chromosome names.
+#' @field read1_5 Read trimming parameters.
+#' @field read1_3 Read trimming parameters.
+#' @field read2_5 Read trimming parameters.
+#' @field read2_3 Read trimming parameters.
+#' @field seq_deth Sequencing depth.
+#' @field fixed A string indicating fixed parameters.
+#' @field suffix1 Suffixes for FASTQ files.
+#' @field suffix2 Suffixes for FASTQ files.
+#' @field error Error rate for alignment.
+#' @field C1 Alignment parameters.
+#' @field C2 Alignment parameters.
+#' @field T1 Alignment parameters.
+#' @field T2 Alignment parameters.
+#' @field graft, host Graft and host species for PDX pipelines.
+#' @field pdata Phenotype data.
+#' @field workflowDir  Directories for workflow, analysis, and QC.
+#' @field analysisDir  Directories for workflow, analysis, and QC.
+#' @field qcDir Directories for workflow, analysis, and QC.
+#' @field selfconfig The directory for self-generated configuration files.
+#' @field SID_log The directory for log files.
+#' @field trimDir Directories for trimming, BSMAP, and methylation calling.
+#' @field bsmapDir Directories for trimming, BSMAP, and methylation calling.
+#' @field outDir_mCall Directories for trimming, BSMAP, and methylation calling.
+#' @field ourDirUmx Directories for UMX and Qualimap results.
+#' @field outdir_qualimap Directories for UMX and Qualimap results.
+#' @field outDir_mhap Directories for M-HAP and RData files.
+#' @field RData_folder Directories for M-HAP and RData files.
+#' @field clubcpg Directories for CpG data.
+#' @field clubcpg_coverage_before Directories for CpG data.
+#' @field clubcpg_model Directories for CpG data.
+#' @field clubcpg_coverage_impute Directory for imputed CpG coverage.
+#' @field qc_summary Directories for QC summaries and log summaries.
+#' @field logsummary Directories for QC summaries and log summaries.
+#' @field outDir_betaM Directories for betaM, UXM summary, and DMR results.
+#' @field uxm_summary Directories for betaM, UXM summary, and DMR results.
+#' @field DMR_folder Directories for betaM, UXM summary, and DMR results.
+#' @field methrixh5 Directories for methrix H5 and GC bias results.
+#' @field GCbias Directories for methrix H5 and GC bias results.
+#' @field userspace The root directory for user workflows.
+#' @method initialize initialize 
+#' @method gandalf_info gandalf_info 
+#' @method gandalf_fastq_move gandalf_fastq_move 
+#' @method gandalf_create_filework gandalf_create_filework
+#' @method gandalf_make_config gandalf_make_config
+#' @method gandalf2wars gandalf2wars
+#' @method gandalf_aggResult gandalf_aggResult
+#' @method gandalf_process_discovery gandalf_process_discovery
+#
+#' @export
+BeaverGandalf <- R6::R6Class(
+  "BeaverGandalf",
+  public = list(
+    Mode = NULL, 
+    suffix1 = "_R1_fastq.gz",
+    suffix2 = NULL,
+    error = 0.2, 
+    adapter1 = "AGATCGGAAGAGC",
+    adapter2 = "AGATCGGAAGAGC", 
+    C1 = 0,C2 = 0,T1 = 0,T2 = 0,
+    species = NULL,species1 = "human",species2 = NULL,graft = "human", host = NULL,
+    read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10,
+    pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
+    userid = NULL,fixed = NULL,yaml_file = NULL,
+    cgGR = "inst/hg19/hg19_CpG_sites.RData",
+    cgGR_gz = NULL,
+    CGI = "inst/hg19/hg19_cpgIsland.bed",gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
+                                                          "inst/pdx/mouse/GRCm38.fasta"),
+    genomeFile = c("inst/pdx/homo_sapiens/",
+                    "inst/pdx/mouse/"),
+    rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
+    rnaseq_ref = "inst/rnaseq/homo_sapiens/",
+    CGIRData = "inst/hg19/hg19_CGI_GR.RData",
+    CCGG = "inst/hg19/CCGG.RData",
+    CpG  = "inst/hg19/hg19_CpG_sites.RData",
+    hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
+    workflowDir   = "/workflow",
+    analysisDir = "/analysis",
+    selfconfig = "/config",
+    qcDir      =  "/QC",
+    qcDir_before      =  "/fastqc_raw",
+    qcDir_after      =  "/fastqc_clean",
+    SID_log =  "/log",
+    trimDir =  "/trim",
+    bsmapDir =  "/bsmap",
+    bsmapDir_bamtmp =  "/bsmap/tmp",
+    outDir_mCall =  "/mCall",
+    ourDirUmx =  "/uxm",
+    outdir_qualimap =  "/QC/qualimap",
+    outDir_mhap =  "/mhap",
+    RData_folder =  "/RData",
+    clubcpg = "/clubcpg",
+    clubcpg_coverage_before = "/clubcpg/clubcpg_coverage_before",
+    clubcpg_model =  "/clubcpg/clubcpg_model",
+    clubcpg_coverage_impute = "/clubcpg/clubcpg_coverage_impute",
+    qc_summary =  "/QC",
+    logsummary =   "/log",
+    outDir_betaM =  "/betaM",
+    uxm_summary =  "/uxm",
+    DMR_folder =  "/DMR",
+    methrixh5 = "/methrixh5",
+    GCbias = "/GCbias",
+    chrs = NULL,
+    userspace = "userspace",fastqDir = NULL, PDX_pipeline = NULL,
+    user_email = NULL,init_log = NULL,run_log = NULL,
+
+#' @param Mode \code{character} The mode of the pipeline (e.g., "RRBS", "BSSEQ", "RNASEQ").
+#' @param suffix1 \code{character} Suffix for the first read of paired-end FASTQ files (default: "_R1.fastq.gz").
+#' @param suffix2 \code{character} Suffix for the second read of paired-end FASTQ files (default: NULL).
+#' @param error \code{numeric} Error rate for alignment (default: 0.2).
+#' @param adapter1 \code{character} Adapter sequence for the first read (default: "AGATCGGAAGAGC").
+#' @param adapter2 \code{character} Adapter sequence for the second read (default: "AGATCGGAAGAGC").
+#' @param C1 \code{numeric} Alignment parameters (default: 0).
+#' @param C2 \code{numeric} Alignment parameters (default: 0).
+#' @param T1 \code{numeric} Alignment parameters (default: 0).
+#' @param T2 \code{numeric} Alignment parameters (default: 0).
+#' @param species \code{character} or \code{NULL} Species being analyzed (default: NULL).
+#' @param species1 \code{character} Primary species (default: "human").
+#' @param species2 \code{character} Secondary species (default: NULL).
+#' @param graft \code{character} Graft species for PDX pipelines (default: "human").
+#' @param host \code{character} Host species for PDX pipelines (default: NULL).
+#' @param read1_5 \code{numeric} Read trimming parameters (default: 0).
+#' @param read1_3 \code{numeric} Read trimming parameters (default: 0).
+#' @param read2_5 \code{numeric} Read trimming parameters (default: 0).
+#' @param read2_3 \code{numeric} Read trimming parameters (default: 0).
+#' @param seq_deth \code{numeric} Sequencing depth (default: 10).
+#' @param pdata \code{data.frame} or \code{NULL} Phenotype data (default: NULL).
+#' @param uploadfile \code{data.frame} or \code{NULL} Data frame containing file paths and names (default: NULL).
+#' @param samples \code{character} or \code{NULL} Sample IDs (default: NULL).
+#' @param workflow_endpoint \code{character} or \code{NULL} Workflow endpoint configuration (default: NULL).
+#' @param userid \code{character} or \code{NULL} Unique user ID (default: NULL).
+#' @param fixed \code{character} or \code{NULL} Fixed parameters string (default: NULL).
+#' @param yaml_file \code{character} or \code{NULL} Path to the YAML configuration file (default: NULL).
+#' @param cgGR \code{character} Path to CpG sites RData file (default: "inst/hg19/hg19_CpG_sites.RData").
+#' @param cgGR_gz \code{character} or \code{NULL} Gzipped version of cgGR (default: NULL).
+#' @param CGI \code{character} Path to CpG islands BED file (default: "inst/hg19/hg19_cpgIsland.bed").
+#' @param gnome_fasta \code{character} or \code{vector} Path(s) to genome FASTA files (default: hg19 and GRCm38).
+#' @param genomeFile \code{character} or \code{vector} Path(s) to genome files (default: hg19 and GRCm38).
+#' @param rnaseq_gtf \code{character} Path to RNAseq GTF file (default: "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf").
+#' @param rnaseq_ref \code{character} Path to RNAseq reference directory (default: "inst/rnaseq/homo_sapiens/").
+#' @param CGIRData \code{character} Path to CGI RData file (default: "inst/hg19/hg19_CGI_GR.RData").
+#' @param CCGG \code{character} Path to CCGG RData file (default: "inst/hg19/CCGG.RData").
+#' @param CpG \code{character} Path to CpG sites RData file (default: "inst/hg19/hg19_CpG_sites.RData").
+#' @param hg19_genomeFile \code{character} Path to hg19 genome file (default: "inst/hg19/ucsc_hg19-20180821.fa").
+#' @param fastqDir \code{character} Directory for FASTQ files (default: "/data").
+#' @param workflowDir \code{character} Directory for workflow files (default: "/workflow").
+#' @param analysisDir \code{character} Directory for analysis results (default: "/analysis").
+#' @param selfconfig \code{character} Directory for self-generated configuration files (default: "/config").
+#' @param qcDir \code{character} Directory for quality control results (default: "/QC").
+#' @param qcDir_before \code{character} Directory for raw QC results (default: "/fastqc_raw").
+#' @param qcDir_after \code{character} Directory for cleaned QC results (default: "/fastqc_clean").
+#' @param SID_log \code{character} Directory for log files (default: "/log").
+#' @param trimDir \code{character} Directory for trimmed files (default: "/trim").
+#' @param bsmapDir \code{character} Directory for BSMAP results (default: "/bsmap").
+#' @param bsmapDir_bamtmp \code{character} Temporary directory for BSMAP BAM files (default: "/bsmap/tmp").
+#' @param outDir_mCall \code{character} Directory for methylation calling results (default: "/mCall").
+#' @param ourDirUmx \code{character} Directory for UMX results (default: "/uxm").
+#' @param outdir_qualimap \code{character} Directory for Qualimap results (default: "/QC/qualimap").
+#' @param outDir_mhap \code{character} Directory for M-HAP results (default: "/mhap").
+#' @param RData_folder \code{character} Directory for RData files (default: "/RData").
+#' @param clubcpg \code{character} Directory for CpG data (default: "/clubcpg").
+#' @param clubcpg_coverage_before \code{character} Directory for pre-imputation CpG coverage (default: "/clubcpg/clubcpg_coverage_before").
+#' @param clubcpg_model \code{character} Directory for CpG models (default: "/clubcpg/clubcpg_model").
+#' @param clubcpg_coverage_impute \code{character} Directory for imputed CpG coverage (default: "/clubcpg/clubcpg_coverage_impute").
+#' @param qc_summary \code{character} Directory for QC summaries (default: "/QC").
+#' @param logsummary \code{character} Directory for log summaries (default: "/log").
+#' @param outDir_betaM \code{character} Directory for betaM results (default: "/betaM").
+#' @param uxm_summary \code{character} Directory for UXM summaries (default: "/uxm").
+#' @param DMR_folder \code{character} Directory for DMR results (default: "/DMR").
+#' @param methrixh5 \code{character} Directory for methrix H5 files (default: "/methrixh5").
+#' @param GCbias \code{character} Directory for GC bias results (default: "/GCbias").
+#' @param chrs \code{character} or \code{NULL} Chromosome names (default: NULL).
+#' @param userspace \code{character} Root directory for user workflows (default: "userspace").
+#' @param PDX_pipeline \code{logical} or \code{NULL} Whether to enable PDX pipeline mode (default: NULL).
+#' @param init_log \code{character} or \code{NULL} Initialization log (default: NULL).
+#' @param user_email \code{character} User email for notifications (default: "whoami").
+#' @param new_userid_always \code{logical} Whether to always generate a new user ID (default: TRUE).
+#'
+#' @return An initialized BeaverGandalf object.
+#' @export
+    initialize = function(Mode = NULL, suffix1 = "_R1.fastq.gz",suffix2 = NULL,
+                          error = 0.2, adapter1 = "AGATCGGAAGAGC",adapter2 = "AGATCGGAAGAGC", 
+                          C1 = 0,C2 = 0,T1 = 0,T2 = 0,
+                          species = NULL,species1 = "human",species2 = NULL,graft = "human", host = NULL,
+                          read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10,
+                          pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
+                          userid = NULL,fixed = NULL,
+                          yaml_file = NULL,
+                          cgGR = "inst/hg19/hg19_CpG_sites.RData",
+                          cgGR_gz = NULL,
+                          CGI = "inst/hg19/hg19_cpgIsland.bed",gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
+                                                                               "inst/pdx/mouse/GRCm38.fasta"),
+                          genomeFile = c("inst/pdx/homo_sapiens/",
+                                         "inst/pdx/mouse/"),
+                          rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
+                          rnaseq_ref = "inst/rnaseq/homo_sapiens/",
+                          CGIRData = "inst/hg19/hg19_CGI_GR.RData",
+                          CCGG = "inst/hg19/CCGG.RData",
+                          CpG  = "inst/hg19/hg19_CpG_sites.RData",
+                          hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
+                          fastqDir = "/data",
+                          workflowDir   = "/workflow",
+                          analysisDir = "/analysis",
+                          selfconfig = "/config",
+                          qcDir      =  "/QC",
+                          qcDir_before      =  "/fastqc_raw",
+                          qcDir_after      =  "/fastqc_clean",
+                          SID_log =  "/log",
+                          trimDir =  "/trim",
+                          bsmapDir =  "/bsmap",
+                          bsmapDir_bamtmp =  "/bsmap/tmp",
+                          outDir_mCall =  "/mCall",
+                          ourDirUmx =  "/uxm",
+                          outdir_qualimap =  "/QC/qualimap",
+                          outDir_mhap =  "/mhap",
+                          RData_folder =  "/RData",
+                          clubcpg = "/clubcpg",
+                          clubcpg_coverage_before = "/clubcpg/clubcpg_coverage_before",
+                          clubcpg_model =  "/clubcpg/clubcpg_model",
+                          clubcpg_coverage_impute = "/clubcpg/clubcpg_coverage_impute",
+                          qc_summary =  "/QC",
+                          logsummary =   "/log",
+                          outDir_betaM =  "/betaM",
+                          uxm_summary =  "/uxm",
+                          DMR_folder =  "/DMR",
+                          methrixh5 = "/methrixh5",
+                          GCbias = "/GCbias",
+                          chrs = NULL,
+                          userspace = "userspace",
+                          PDX_pipeline = NULL,init_log = NULL,
+                          user_email = "whoami",
+                          new_userid_always = T) {
+      # 一些不需要计算的静态配置
+      message(">> Configure pipeline ...")
+      init_log <- c(">> Configure pipeline ...")
+      if (species1 == "homo_sapiens") stop("homo_sapiens is not allowed, use 'human' or others")
+      self$Mode <- stringr::str_to_upper(Mode) 
+      message(glue::glue(">> Using {self$Mode} pipeline ..."))
+      init_log <- c(init_log,glue::glue(">> Using {self$Mode} pipeline ..."))
+      self$user_email <- user_email
+      message(glue::glue(">> Runing progress will be sent to {self$user_email} ..."))
+      init_log <- c(init_log,glue::glue(">> Runing progress will be sent to {self$user_email} ..."))
+      self$userspace <- userspace
+      self$error <- error
+      self$C1 = C1
+      self$C2 = C2
+      self$T1 = T1
+      self$T2 = T2
+      self$read1_5 = read1_5
+      self$read1_3 = read1_3
+      self$read2_5 = read2_5
+      self$read2_3 = read2_3
+      self$seq_deth = seq_deth
+      self$pdata = pdata
+      self$uploadfile = uploadfile
+      self$genomeFile = genomeFile
+      self$cgGR = cgGR
+      self$cgGR_gz = stringr::str_replace(cgGR,"RData","gz")
+      self$CGI = CGI
+      self$gnome_fasta = gnome_fasta
+      self$genomeFile = genomeFile
+      self$rnaseq_gtf = rnaseq_gtf
+      self$rnaseq_ref = rnaseq_ref
+      self$CGIRData = CGIRData
+      self$CCGG = CCGG
+      self$CpG  = CpG
+      self$hg19_genomeFile = hg19_genomeFile
+      # 一些需要计算的参数
+      if (is.null(species)){
+        self$species <- c(species1,species2)
+      }else{
+        self$species <- species
+      }
+      
+      self$species1 <- species1
+      self$species2 <- species2
+      
+      if (length(c(species1,species2)) <2){
+        self$fixed = ""
+      }else{
+        self$fixed = "fixed_"
+      }
+      
+      self$graft <- graft
+      if (graft == species1){
+        self$host = species2
+      } else {
+        self$host = species1
+      }
+      if (!is.null(species1) & !is.null(species2)){
+        self$PDX_pipeline = T
+      }else{
+        self$PDX_pipeline = F
+      }
+      message(glue::glue(">> PDX mode is set to {self$PDX_pipeline} ..."))
+      init_log <- c(init_log,glue::glue(">> PDX mode is set to {self$PDX_pipeline} ..."))
+      self$suffix1 = suffix1
+      if (is.null(suffix2)){
+        suffix2 = gsub(1, 2, suffix1)
+        if(suffix2 == suffix1){
+          suffix2 = gsub(2, 1, suffix1)
+        }
+        self$suffix2 = suffix2
+      } else{
+        self$suffix2 = suffix2
+      }
+      message(glue::glue(">> Suffixs of raw fastq files are {self$suffix1} and {self$suffix2}."))
+      init_log <- c(init_log,glue::glue(">> Suffixs of raw fastq files are {self$suffix1} and {self$suffix2}."))
+      if (is.null(chrs)){
+        if (graft == "human"){
+          self$chrs <- paste0("chr",c(1:22))
+        }else{
+          self$chrs <- c(1:18) %>% as.character()
+        }
+      }else{
+        self$chrs <- chrs
+      }
+      # userid in the userspace
+      message(">> Create task workflows ...")
+      init_log <- c(init_log,">> Create task workflows ...")
+      
+      gen_userid <- function(bytes = 20,task_dir){
+        random_userid <- openssl::rand_bytes(bytes) %>% paste0(.,collapse = "")
+        exsit_task <- list.dirs(path = task_dir,full.names = F)
+        while(random_userid %in% exsit_task){
+          random_userid <- openssl::rand_bytes(bytes) %>% paste0(.,collapse = "")
+        }
+        return(random_userid)
+      }
+      if (is.null(userid)){
+        self$userid <- gen_userid(bytes = 20,task_dir = userspace)
+      }else if(userid %in% list.dirs(path = userspace,full.names = F) & new_userid_always){
+        self$userid <- gen_userid(bytes = 20,task_dir = userspace)
+      }else{
+        self$userid <- userid
+      }
+      
+      message(glue::glue(">> Create Jobid:{self$userid}"))
+      init_log <- c(init_log,glue::glue(">> Create Jobid:{self$userid}"))
+      
+      # folders
+      masterDir = paste0(userspace,"/",self$userid)
+      self$fastqDir = paste0(masterDir,fastqDir)
+      self$workflowDir   = paste0(masterDir,workflowDir)
+      self$analysisDir = paste0(masterDir,analysisDir)
+      self$selfconfig = paste0(masterDir,selfconfig)
+      self$yaml_file = paste0(masterDir,selfconfig,"/config.yaml")
+      self$qcDir      =  paste0(masterDir,workflowDir,qcDir)
+      self$qcDir_before      = paste0(masterDir,workflowDir,qcDir_before)
+      self$qcDir_after      =  paste0(masterDir,workflowDir,qcDir_after )
+      self$methrixh5 = paste0(masterDir,workflowDir,outDir_mCall,methrixh5)
+      self$GCbias = paste0(masterDir,workflowDir,qcDir,GCbias)
+      self$SID_log =  paste0(masterDir,workflowDir,SID_log)
+      self$trimDir =  paste0(masterDir,workflowDir,trimDir)
+      self$bsmapDir =  paste0(masterDir,workflowDir,bsmapDir)
+      self$bsmapDir_bamtmp =  paste0(masterDir,workflowDir,bsmapDir_bamtmp)
+      self$outDir_mCall =  paste0(masterDir,workflowDir,outDir_mCall)
+      self$ourDirUmx =  paste0(masterDir,workflowDir,ourDirUmx)
+      self$outdir_qualimap =  paste0(masterDir,workflowDir,outdir_qualimap)
+      self$outDir_mhap =  paste0(masterDir,workflowDir,outDir_mhap)
+      self$RData_folder =  paste0(masterDir,workflowDir,RData_folder)
+      self$clubcpg = paste0(masterDir,workflowDir,clubcpg)
+      self$clubcpg_coverage_before = paste0(masterDir,workflowDir,clubcpg_coverage_before)
+      self$clubcpg_model =  paste0(masterDir,workflowDir,clubcpg_model)
+      self$clubcpg_coverage_impute = paste0(masterDir,workflowDir,clubcpg_coverage_impute)
+      self$qc_summary =  paste0(masterDir,qc_summary)
+      self$logsummary =   paste0(masterDir,logsummary)
+      self$outDir_betaM =  paste0(masterDir,analysisDir,outDir_betaM)
+      self$uxm_summary =  paste0(masterDir,analysisDir,uxm_summary)
+      self$DMR_folder =  paste0(masterDir,analysisDir,DMR_folder)
+      # end_point
+      if (workflow_endpoint == "1" ){
+        temp_endpoint <- c(T,F,F)
+        names(temp_endpoint) <- paste0("step",c(1:length(temp_endpoint)))
+      } else if (workflow_endpoint == "2" ){
+        temp_endpoint <- c(T,T,F)
+        names(temp_endpoint) <- paste0("step",c(1:length(temp_endpoint)))
+      }else{
+        temp_endpoint <- c(T,T,T)
+        names(temp_endpoint) <- paste0("step",c(1:length(temp_endpoint)))
+      }
+      self$workflow_endpoint <- temp_endpoint
+      message(glue::glue(">> The beaverflow will be ended in step {workflow_endpoint}"))
+      init_log <- c(init_log,glue::glue(">> The beaverflow will be ended in step {workflow_endpoint}"))
+      # samples adapters pdata_filter uploadfiles
+      message(">> Check Fastq files ...")
+      
+      samples <- uploadfile$name %>% 
+        stringr::str_remove(.,self$suffix1) %>% 
+        stringr::str_remove(.,self$suffix2) 
+      
+      message(glue::glue(">> Found {length(samples)} samples: {paste(samples,collapse = ',')}"))
+      init_log <- c(init_log,glue::glue(">> Found {length(samples)} samples: {paste(samples,collapse = ',')}"))
+      samples_paired <- samples %>% 
+        {
+          temp <- .
+          temp_table <- table(temp)
+          temp_table <- temp_table[temp_table == 2]
+          names(temp_table)
+        }
+      message(glue::glue(">> Found {length(samples_paired )} paired_samples: {paste(samples_paired ,collapse = ',')}"))
+      init_log <- c(init_log,glue::glue(">> Found {length(samples_paired )} paired_samples: {paste(samples_paired ,collapse = ',')}"))
+      if (length(samples_paired) == 0){
+        message(glue::glue(">> Please check your input suffix1: {self$suffix1} "))
+        init_log <- c(init_log,glue::glue(">> Please check your input suffix1: {self$suffix1} "))
+      }
+      self$samples <- samples_paired
+      self$uploadfile <- uploadfile %>% 
+        dplyr::mutate(sampleid = samples) %>% 
+        dplyr::filter(sampleid %in% samples_paired)
+      if (!("sampleid" %in% colnames(pdata))){
+        pdata <- pdata %>% 
+          dplyr::mutate(sampleid = NA)
+      }
+      if (!("inline_barcode_sequence" %in% colnames(pdata))){
+        pdata <- pdata %>% 
+          dplyr::mutate(inline_barcode_sequence = NA)
+      }
+      
+      pdata_filter <- pdata %>% 
+        dplyr::filter(sampleid %in% samples_paired)
+      
+      self$pdata <- pdata_filter
+      
+      message(">> Check Phenodata ...")
+      # adapter calculation
+      
+      trimSeq1 = rep(adapter1, length(samples_paired))
+      trimSeq2 = rep(adapter2, length(samples_paired))
+      for (i in 1:length(samples_paired)){
+        inline_barcode_revComp = pdata_filter %>% 
+          dplyr::filter(sampleid %in% samples_paired[i]) %>% 
+          {
+            temp <- .
+            string <- revCompString(temp[["inline_barcode_sequence"]][1])
+            string
+          }
+        if( stringr::str_to_upper(Mode)  == "RRBS"){
+          trimSeq1[i] = paste0("TGA", inline_barcode_revComp, trimSeq1[i])
+          trimSeq2[i] = paste0("A", inline_barcode_revComp, trimSeq2[i])
+        } else {
+          trimSeq1[i] = paste0(inline_barcode_revComp, trimSeq1[i])
+          trimSeq2[i] = paste0(inline_barcode_revComp, trimSeq2[i])
+        }
+          
+      }
+      message(">> Calculate Adapters ...")
+      self$adapter1 <- trimSeq1
+      self$adapter2 <- trimSeq2
+      message(">> Done!")
+      self$gandalf_info()
+      # complete init log for front-end display
+      self$init_log <- c(init_log,">> Check Phenodata ...",
+                         ">> Calculate Adapters ...",
+                         ">> Done!",
+                         ">>> BeaverGandalf:Hey,my dear friends!I will lead you throught the cold night of Middle-earth.")
+    },
+# 创建BeaverGandalf时的欢迎词
+#' @usage \method{gandalf_info}{BeaverGandalf}()
+#'
+#' @return \code{NULL} (prints a message to the console).
+#' @export
+    gandalf_info = function() {
+      message(">>> BeaverGandalf:Hey,my dear friends!I will lead you throught the cold night of Middle-earth.")
+    },
+
+# 从temp文件夹move文件到运行目录下
+#' @param method \code{character} The method to use for file transfer. Options are:
+#'   \itemize{
+#'     \item \code{"copy"}: Copy the files to the workflow directory.
+#'     \item \code{"move"}: Move the files to the workflow directory (default).
+#'   }
+#'
+#' @return A data frame containing the original file paths and the new paths in the workflow directory.
+#'
+#' @details
+#' - The method checks if the target directory exists and creates it if necessary.
+#' - If a file already exists in the target directory, it will not be copied or moved again.
+#' - The method logs each file transfer operation and updates the `run_log` field.
+#'
+    gandalf_fastq_move = function(method = c("copy","move")){
+      file_df <- self$uploadfile %>% 
+        dplyr::mutate(newfile_path = paste0(self$fastqDir,"/",name))
+      fs::dir_create(self$fastqDir)
+      for (i in 1:nrow(file_df)){
+        message(glue::glue(">> processing {i}/{nrow(file_df)}"))
+        self$run_log <- c(self$run_log,
+                          glue::glue(">> processing {i}/{nrow(file_df)}"))
+        if (method == "move"){
+          if (!file.exists(file_df$newfile_path[i]))  fs::file_move(path = file_df$filepath[i],
+                        new_path = file_df$newfile_path[i])
+        }else if(method == "copy"){
+          if (!file.exists(file_df$newfile_path[i]))  fs::file_copy(path = file_df$filepath[i],
+                        new_path = file_df$newfile_path[i])
+        }else{
+          self$run_log <- c(self$run_log,
+                            "the method should be one of copy or move")
+          stop("the method should be one of copy or move")
+        }
+        
+      }
+      return(file_df)
+    },
+
+# 创建运行时需要的所有文件目录
+#' Create Required Directories for the Workflow
+#'
+#' This method creates all necessary directories for the bioinformatics workflow.
+#' It ensures that the directories for data storage, analysis results, quality control,
+#' and other intermediate files are available before running the pipeline.
+#'
+#' @usage \method{gandalf_create_filework}{BeaverGandalf}()
+#'
+#' @return A character vector containing the paths of all created directories.
+#'
+#' @details
+#' - The method creates directories for various components of the workflow, including:
+#'   - User space and FASTQ files
+#'   - Workflow, analysis, and QC directories
+#'   - Directories for specific tools (e.g., BSMAP, Qualimap, Methrix)
+#'   - Directories for intermediate and final results (e.g., CpG coverage, DMR results)
+#' - If a directory already exists, it will not be recreated.
+#' - The method logs each directory creation operation and updates the `run_log` field.
+#'
+    gandalf_create_filework = function(){
+      fileworks <- c(
+        self$userspace, self$fastqDir,self$workflowDir,
+        self$analysisDir, self$selfconfig , self$qcDir  ,
+        self$qcDir_before ,self$qcDir_after , self$methrixh5,
+        self$GCbias, self$SID_log,self$trimDir ,self$bsmapDir ,
+        self$bsmapDir_bamtmp,self$outDir_mCall,self$ourDirUmx,
+        self$outdir_qualimap,self$outDir_mhap, self$RData_folder,
+        self$clubcpg,self$clubcpg_coverage_before,self$clubcpg_model,
+        self$clubcpg_coverage_impute,self$qc_summary,
+        self$logsummary,  self$outDir_betaM,self$uxm_summary,
+        self$DMR_folder,
+        paste0(self$bsmapDir_bamtmp,"/",self$species1),
+        paste0(self$bsmapDir_bamtmp,"/",self$species2),
+        paste0(self$bsmapDir,"/",self$species1),
+        paste0(self$bsmapDir,"/",self$species2),
+        paste0(self$bsmapDir,"/Filtered_bams")
+      ) %>% unique()
+      
+      message(glue::glue(">> Create {length(fileworks)} dirs."))
+      self$run_log <- c(self$run_log,
+                        glue::glue(">> Create {length(fileworks)} dirs."))
+      for (i in 1:length(fileworks)){
+        
+        fs::dir_create(fileworks[i])
+      }
+      return(fileworks)
+    },
+# 创建snakemake运行需要的config文件
+# 放在任务目录里面
+#' Generate YAML Configuration File for the Workflow
+#'
+#' This method creates a YAML configuration file containing all necessary parameters
+#' and directory paths for the bioinformatics workflow. The generated YAML file is
+#' used by Snakemake or other workflow management tools to execute the pipeline.
+#'
+#' @usage \method{gandalf_make_config}{BeaverGandalf}()
+#'
+#' @return A named list containing the configuration parameters written to the YAML file.
+#'
+#' @details
+#' - The method collects all relevant parameters from the BeaverGandalf object,
+#'   including pipeline mode, species, adapter sequences, directory paths, and more.
+#' - It writes these parameters to a YAML file specified by `self$yaml_file`.
+#' - The method ensures that the configuration directory (`self$selfconfig`) exists
+#'   before writing the file.
+#' - The generated YAML file includes paths to genome files, reference data, and
+#'   directories for analysis results, QC, and intermediate files.
+#'
+
+    gandalf_make_config = function(){
+      
+      yaml_config_list <- list(
+        Mode = self$Mode,
+        userid = self$userid,
+        jobid = self$userid,
+        species = self$species,
+        graft = self$graft,
+        host =self$host,
+        suffix = self$suffix1,
+        suffix2= self$suffix2,
+        error = self$error,
+        trimSeq1 = self$adapter1,
+        trimSeq2 = self$adapter2,
+        C1 = self$C1,
+        C2 = self$C2,
+        T1  = self$T1,
+        T2  = self$T2,
+        genomeFile = self$genomeFile,
+        gnome_fasta = self$gnome_fasta,
+        hg19_genomeFile = self$hg19_genomeFile,
+        cgGR = self$cgGR,
+        cgGR_gz = self$cgGR_gz,
+        CGI = self$CGI,
+        CGIRData = self$CGIRData,
+        CCGG = self$CCGG,
+        CpG  = self$CpG,
+        workDir = paste0(self$userspace,"/",self$userid),
+        workflowDir = self$workflowDir,
+        analysisDir = self$analysisDir,
+        selfconfig = self$selfconfig,
+        qcDir = self$qcDir ,
+        qcDir_before   = self$qcDir_before,
+        qcDir_after   = self$qcDir_after,
+        SID_log = self$SID_log,
+        trimDir = self$trimDir,
+        bsmapDir = self$bsmapDir,
+        bsmapDir_bamtmp = self$bsmapDir_bamtmp,
+        outDir_mCall = self$outDir_mCall,
+        ourDirUmx = self$ourDirUmx,
+        outdir_qualimap = self$outdir_qualimap,
+        outDir_mhap = self$outDir_mhap,
+        RData_folder = self$RData_folder,
+        DMR_folder = self$DMR_folder,
+        rawDir  = self$fastqDir,
+        outDir_betaM = self$outDir_betaM,
+        qc_summary = self$qc_summary,
+        logsummary =  self$logsummary,
+        uxm_summary = self$uxm_summary,
+        SIDs = self$samples,
+        read1_5 = self$read1_5,
+        read1_3 = self$read1_3,
+        read2_5 = self$read2_5,
+        read2_3 = self$read2_3,
+        seq_deth = self$seq_deth,
+        fixed = self$fixed,
+        clubcpg = self$clubcpg,
+        clubcpg_coverage_before = self$clubcpg_coverage_before,
+        clubcpg_model = self$clubcpg_model,
+        clubcpg_coverage_impute =  self$clubcpg_coverage_impute,
+        chrs = self$chrs,
+        rnaseq_gtf = self$rnaseq_gtf,
+        rnaseq_ref = self$rnaseq_ref,
+        methrixh5 = self$methrixh5,
+        GCbias = self$GCbias,
+        user_email = self$user_email,
+        PDX_pipeline = self$PDX_pipeline
+      )
+      message(">> writing config files ...")
+      self$run_log <- c(self$run_log,
+                        ">> writing config files ...")
+      fs::dir_create(self$selfconfig)
+      yaml::write_yaml(yaml_config_list,
+                       file = self$yaml_file)
+      return(yaml_config_list)
+      
+    },
+    
+# 任务流程函数，实际运行的任务
+#' Launch and Manage the Bioinformatics Workflow
+#'
+#' This method initiates and manages the execution of the bioinformatics workflow
+#' using Snakemake. It supports multiple execution environments, including Kubernetes,
+#' Slurm, and containerized environments. The method configures the workflow based
+#' on the provided parameters and runs the pipeline in the specified mode.
+#'
+#' @param jobflow \code{character} The directory containing the Snakemake workflow files (default: "workflows").
+#' @param enigent \code{character} The execution environment detected by \code{beaver_engine_detect()} (default: result of \code{beaver_engine_detect()}).
+#' @param snakemake_condaenv \code{character} The name of the Conda environment to use for Snakemake (default: "").
+#' @param dry_run \code{logical} Whether to perform a dry run without executing the workflow (default: FALSE).
+#' @param partition the partition of resources used by slrum cluster,only works in slrum mode
+#' @param use_sbatch \code{logical} Whether to use sbatch to submit a job or use srun in FALSE
+#'
+#' @return \code{NULL} (executes the workflow and logs the process).
+#'
+#' @details
+#' - The method detects the execution environment using \code{beaver_engine_detect()}.
+#' - It configures the workflow based on the environment (Kubernetes, Slurm, or container).
+#' - The method runs the workflow in steps, with each step potentially involving multiple samples.
+#' - Logs for each step are recorded in the \code{run_log} field.
+#' - The method supports different modes (e.g., RRBS, BSSEQ, RNASEQ) and PDX pipelines.
+#'
+    
+    gandalf2wars = function(jobflow = "workflows",
+                            enigent = beaver_engine_detect(),
+                            snakemake_condaenv = "",
+                            dry_run = F,
+                            partition = "amd_512",
+                            use_sbatch = F){
+      
+      cpus = c("20","40","10")
+      process = c("40","60","20")
+      mem = c("100G","400G","400G")
+      
+      if (self$Mode == "RNASEQ"){
+        workflow_idx = "BeaverRNA"
+        job_idx = "rnaseq"
+      } else if (self$PDX_pipeline){
+        workflow_idx = "BeaverPDX"
+        job_idx = "bsseq"
+      } else {
+        workflow_idx = "BeaverBS"
+        job_idx = "bsseq"
+      }
+      
+      snakemake_condaenv_bk <-  snakemake_condaenv
+      if (snakemake_condaenv != ""){
+        snakemake_condaenv <- paste("conda run -n ",snakemake_condaenv)
+      }
+      if (enigent %in% "k8s"){
+        mem = paste0(mem,"i")
+      }
+      
+      if (dry_run){
+        dryrun <- "-n"
+      }else {
+        dryrun <- ""
+      }
+      
+      task_df = data.frame(
+        steps = paste0("step",c(1:3)),
+        cpus = cpus,
+        mem = mem,
+        endpoint = self$workflow_endpoint
+      ) %>% 
+        dplyr::filter(endpoint == T)
+      if (self$Mode == "RNASEQ" & nrow(task_df) == 3){
+        task_df <- task_df[1:2,]
+      }
+      message(glue::glue(">> This workflow will be ended in step {nrow(task_df)}"))
+      
+      self$run_log <- c(self$run_log,
+                        glue::glue(">> This workflow will be ended in step {nrow(task_df)}"))
+      
+      if (enigent %in% "k8s"){
+        message(glue::glue(">> configure job files ... "))
+        # read & write job yaml files
+        for (i in 1:nrow(task_df)){
+          if (task_df$steps[i] == "step1"){
+            message(">> Run in Step 1")
+            self$run_log <- c(self$run_log,
+                              ">> Run in Step 1")
+            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
+            job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
+            job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
+            new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],".yaml")
+            yaml::write_yaml(job_yaml,
+                             new_job_config)
+            status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
+            self$run_log <- c(self$run_log,
+                              status)
+          }else{
+            message(">> Run by per-sample in Step 2 and Step 3")
+            self$run_log <- c(self$run_log,
+                              ">> Run by per-sample in Step 2 and Step 3")
+            configfiles <- yaml::read_yaml(self$yaml_file)
+            for (a in 1:length(self$samples)){
+              message(glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              self$run_log <- c(self$run_log,
+                                glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              configfiles$SIDs <-  self$samples[a]
+              new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
+              yaml::write_yaml(configfiles,
+                               new_yaml_config)
+              command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config}")
+              job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
+              job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
+              new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],"_",self$samples[a],".yaml")
+              yaml::write_yaml(job_yaml,
+                               new_job_config)
+              status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
+              self$run_log <- c(self$run_log,
+                                status)
+            }
+            
+            message(glue::glue(">> Aggather the Results from Step {i}"))
+            self$run_log <- c(self$run_log,
+                              glue::glue(">> Aggather the Results from Step {i}"))
+            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
+            job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
+            job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
+            new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],".yaml")
+            yaml::write_yaml(job_yaml,
+                             new_job_config)
+            status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
+            self$run_log <- c(self$run_log,
+                              status)
+            
+          }
+          }
+        
+      }else if (enigent %in% "container"){
+        message(">> Run in container Mode")
+        for (i in 1:nrow(task_df)){
+          if (task_df$steps[i] == "step1"){
+            message(">> Run in Step 1")
+            self$run_log <- c(self$run_log,
+                              ">> Run in Step 1")
+            command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
+            status <- system(command = command,intern = T)
+            self$run_log <- c(self$run_log,
+                              status)
+          }else{
+            message(">> Run by per-sample in Step 2 and Step 3")
+            self$run_log <- c(self$run_log,
+                              ">> Run by per-sample in Step 2 and Step 3")
+            configfiles <- yaml::read_yaml(self$yaml_file)
+            for (a in 1:length(self$samples)){
+              message(glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              self$run_log <- c(self$run_log,
+                                glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              configfiles$SIDs <-  self$samples[a]
+              new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
+              yaml::write_yaml(configfiles,
+                               new_yaml_config)
+              command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config}")
+              message(command)
+              status <- system(command = command,intern = T)
+              self$run_log <- c(self$run_log,
+                                status)
+            }
+            message(glue::glue(">> Aggather the Results from Step {i}"))
+            self$run_log <- c(self$run_log,
+                              glue::glue(">> Aggather the Results from Step {i}"))
+            command <- glue::glue("{snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
+            status <- system(command = command,intern = T)
+            self$run_log <- c(self$run_log,
+                              status)
+          }
+        }
+      }else{
+        
+        if (use_sbatch){
+          message(">> Run in Slurm cluster Mode，sbatch will be used")
+          fs::dir_create(self$logsummary)
+          saveRDS(self,
+                  file = paste0(self$logsummary,
+                                "/workflow.RDS"))
+          rscript_temp <- c(
+            "library(beaverdown2)",
+            "library(dplyr)",
+            glue::glue("BeaverGandalf <- readRDS('{self$logsummary}/workflow.RDS')"),
+            "gandalf_RRBS$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F)"
+          )
+          rfile <- paste0(self$logsummary,
+                                "/workflow.R")
+          writeLines(rscript_temp,
+                     rfile)
+          out <- paste0(self$logsummary,"/beaverflow.out")
+          err <- paste0(self$logsummary,"/beaverflow.err")
+          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=2 --mem=32G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
+          # 运行 sbatch 提交
+          message(">> Submitting Jobs by sbatch")
+          system(command = sbatch_command)
+          message(">> Submition Over.")
+          message(">> Start watching output files")
+          message(">> Run: tail -f {out}")
+          
+        }else{
+        message(">> Run in Slurm cluster Mode，srun will be used")
+        # Add sbatch support
+        # sbatch --ntasks=1 --cpus-per-task=1 --mem=16G  --partition=normal --output=my_output_%j.out --error=my_error_%j.err --wrap="conda run -n base Rscript workflow.R"
+        for (i in 1:nrow(task_df)){
+          if (task_df$steps[i] == "step1"){
+            message(">> Run in Step 1")
+            self$run_log <- c(self$run_log,
+                              ">> Run in Step 1")
+            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
+            status <- system(command = command,intern = T)
+            self$run_log <- c(self$run_log,
+                              status)
+          }else{
+            message(">> Run by per-sample in Step 2 and Step 3")
+            self$run_log <- c(self$run_log,
+                              ">> Run by per-sample in Step 2 and Step 3")
+            configfiles <- yaml::read_yaml(self$yaml_file)
+            for (a in 1:length(self$samples)){
+              message(glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              self$run_log <- c(self$run_log,
+                                glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              configfiles$SIDs <-  self$samples[a]
+              new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
+              yaml::write_yaml(configfiles,
+                               new_yaml_config)
+              command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config}")
+              status <- system(command = command,intern = T)
+              self$run_log <- c(self$run_log,
+                                status)
+            }
+            
+            message(glue::glue(">> Aggather the Results from Step {i}"))
+            self$run_log <- c(self$run_log,
+                              glue::glue(">> Aggather the Results from Step {i}"))
+            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
+            status <- system(command = command,intern = T)
+            self$run_log <- c(self$run_log,
+                              status)
+            
+          }
+        }
+        }
+ 
+      }
+    },
+# gandalf 下载文件和结果
+#' Download or Aggregate Workflow Results
+#'
+#' This method aggregates the results from the workflow execution and prepares
+#' them for download or further analysis. It supports multiple result types and
+#' compression methods.
+#'
+#' @param resultType \code{character} The type of result to aggregate. Options include:
+#'   \itemize{
+#'     \item \code{"trim"}: Trimmed FASTQ files.
+#'     \item \code{"bam"}: BAM files from alignment.
+#'     \item \code{"matrix"}: Methylation matrix files.
+#'     \item \code{"qc"}: Quality control summary files.
+#'   }
+#' @param method \code{character} The compression method to use. Options include:
+#'   \itemize{
+#'     \item \code{"zip"}: Compress results into a ZIP archive.
+#'     \item \code{"gzip"}: Compress results using gzip.
+#'   }
+#'
+#' @return A list containing the aggregated results, including:
+#'   \itemize{
+#'     \item \code{rootpath}: The root directory of the results.
+#'     \item \code{filedf}: A data frame with file names and paths.
+#'     \item \code{compressfile}: The path to the compressed archive file.
+#'   }
+#'
+    gandalf_aggResult =function(resultType,
+                                method){
+      if (resultType == "trim"){
+        path = self$trimDir
+      }else if (resultType == "bam"){
+        path = self$bsmapDir
+      }else if (resultType == "matrix") {
+        path = self$outDir_mCall
+      }else if(resultType == "qc"){
+        path = self$qc_summary
+      }else{
+        stop(">> The resultType should one of the: trim,bam,matrix,qc")
+      }
+      
+      file_list <- file_agg(path = path,
+                            method = method)
+      return(file_list)
+      
+    },
+# gandalf 进度探查
+#' Detect the Current Progress of the Workflow
+#'
+#' This method checks the current progress of the Beaverflow pipeline by examining
+#' the log files in the specified log directory. It determines which steps have been
+#' completed and which step is currently running.
+#'
+#' @usage \method{gandalf_process_discovery}{BeaverGandalf}()
+#'
+#' @return An integer indicating the current step number of the workflow.
+#'
+#' @details
+#' - The method scans the log directory (`self$SID_log`) for files with the pattern
+#'   `*_success.txt` to identify completed steps.
+#' - It calculates the number of completed steps and determines the ongoing step.
+#' - For RNAseq mode, the workflow is limited to two steps, and the method returns
+#'   `2` if the second step is ongoing.
+#' - For other modes, the workflow can have up to three steps, and the method returns
+#'   the current step number (1, 2, or 3).
+#' - The method logs the current progress using the `message` function.
+#'
+
+   gandalf_process_discovery = function(){
+      log_dir <- self$SID_log
+      files <- list.files(path = log_dir,
+                          pattern = "*_success.txt")
+      complete_steps <- length(files)
+      ongoing_steps <- complete_steps + 1
+       
+      if (self$Mode == "RNASEQ" & ongoing_steps > 2){
+        message(glue::glue(">> The Beaverflow is currently runing in step 2"))
+        return(2)
+      }else if (ongoing_steps > 3){
+        message(glue::glue(">> The Beaverflow is currently runing in step 3"))
+        return(3)
+      }else {
+        message(glue::glue(">> The Beaverflow is currently runing in step {ongoing_steps}"))
+        return(ongoing_steps)
+      }
+    }
+    # gandalf QC plots
+    
+  )
+)
+```
+  
+```{r example-BeaverGandalf}
+
+```
+  
+```{r tests-BeaverGandalf}
+test_that("BeaverGandalf works", {
+  expect_true(inherits(BeaverGandalf, "R6ClassGenerator")) 
+})
+```
+  
+# update_gandalf
+    
+```{r function-update_gandalf}
+#' Update and Reinitialize a BeaverGandalf Object
+#'
+#' This function creates a new instance of the \code{BeaverGandalf} class based on
+#' an existing object (\code{gandalfthegray}). It retains the original configuration
+#' parameters but allows for updates or modifications as needed. This is useful for
+#' reinitializing the workflow with the same settings or adjusting specific parameters.
+#'
+#' @param gandalfthegray An existing \code{BeaverGandalf} object to be updated.
+#' @return A new \code{BeaverGandalf} object (\code{gandalfthewhite}) with the updated configuration.
+#'
+#' @details
+#' - The function extracts key parameters from the existing \code{gandalfthegray} object,
+#'   including mode, species, uploaded files, phenotype data, workflow endpoint, user email,
+#'   and user ID.
+#' - It initializes a new \code{BeaverGandalf} object with these parameters.
+#' - The \code{new_userid_always} parameter is set to \code{FALSE} to reuse the existing user ID.
+#' - This function is useful for restarting or updating the workflow while preserving the original settings.
+update_gandalf <- function(gandalfthegray){
+  gandalfthewhite <- BeaverGandalf$new(
+    Mode = gandalfthegray$Mode,
+    species1 = gandalfthegray$species1,
+    species2 = gandalfthegray$species2,
+    uploadfile = gandalfthegray$uploadfile, # 是一个表格，由上传功能自动生成
+    pdata = gandalfthegray$pdata, # 是一个表格（上传送样表，需要sampleid和inline_barcode_...两列）
+    workflow_endpoint = as.character(sum(gandalf_RRBS$workflow_endpoint)), # pipeline 的终点，从前端输入
+    user_email = gandalfthegray$user_email,
+    new_userid_always = F,
+    userid = gandalfthegray$userid
+  )
+  return(gandalfthewhite)
+}
+```
+  
+```{r example-update_gandalf}
+
+```
+  
+```{r tests-update_gandalf}
+test_that("update_gandalf works", {
+  expect_true(inherits(update_gandalf, "function")) 
+})
+```
+  
+
+
+# beaver_findunpairedread
+    
+```{r function-beaver_findunpairedread}
+#' Identify and process unpaired reads from a BAM file
+#'
+#' This function takes the path to a BAM file, reads the read names, counts their occurrences, and identifies
+#' unpaired reads (those that appear only once). It then writes the names of unpaired reads to the same file,
+#' and if there are no unpaired reads, it deletes the file.
+#'
+#' @param readname The file path to the BAM file.
+#'
+#' @return No return value, but the function modifies the input file or deletes it.
+#'
+#' @export
+beaver_findunpairedread <- function(readname) {
+  # Read the BAM file names into a variable
+  bam_readnames <- readname
+  readnames <- readLines(bam_readnames)
+  
+  # Count the occurrences of each read name
+  readnames <- table(readnames)
+  
+  # Filter for read names that appear only once
+  readnames <- readnames[readnames == 1]
+  
+  # Extract the names of the unpaired reads
+  readnames <- names(readnames)
+  
+  # Remove any empty names from the list
+  readnames <- readnames[readnames != ""]
+
+  # If there are no unpaired reads, delete the BAM file
+  if (length(readnames) == 0) {
+    fs::file_delete(bam_readnames)
+  } else {
+    # Otherwise, write the unpaired read names back to the file
+    writeLines(readnames, con = bam_readnames)
+  }
+}
+```
+  
+```{r example-beaver_findunpairedread}
+
+```
+  
+```{r tests-beaver_findunpairedread}
+test_that("beaver_findunpairedread works", {
+  expect_true(inherits(beaver_findunpairedread, "function")) 
+})
+```
+    
+# beaver_packhtseq
+    
+```{r function-beaver_packhtseq}
+#' Process HTSeq files and generate count and normalized matrices
+#'
+#' This function processes HTSeq files in the specified directory, extracts gene expression data,
+#' and generates both count and normalized matrices. It also performsEntrezeid to Symbol conversion
+#' using a provided database and saves the results as text files and RDS files.
+#'
+#' @param htseq_dir The directory path containing HTSeq files.
+#' @param postfix The file postfix to identify relevant HTSeq files.
+#' @param output_dir The directory path to save the output files.
+#'
+#' @return A list containing the count and normalized matrices.
+#'
+#' @export
+beaver_packhtseq <- function(htseq_dir,
+                             postfix,
+                             output_dir) {
+  # List all HTSeq files in the directory with the specified postfix
+  htseqfiles <- list.files(path = htseq_dir,
+                          pattern = postfix,
+                          full.names = TRUE)
+  origin_matrix <- NULL
+  
+  # Process each HTSeq file
+  for (i in 1:length(htseqfiles)) {
+    sampleid <- stringr::str_remove(htseqfiles[i], pattern = postfix)
+    sampleid <- stringr::str_remove(sampleid, pattern = paste0(htseq_dir, "/"))
+    message(glue::glue("processing {sampleid}"))
+    
+    # Read the HTSeq file into a data frame
+    temp_df <- readr::read_delim(htseqfiles[i],
+                                 delim = "\t", escape_double = FALSE,
+                                 col_names = FALSE, col_types = cols(X2 = col_number()),
+                                 trim_ws = TRUE)
+    colnames(temp_df) <- c("Geneid", sampleid)
+    
+    # Merge the data frame with the origin matrix
+    if (is.null(origin_matrix)) {
+      origin_matrix <- temp_df
+    } else {
+      origin_matrix <- origin_matrix %>%
+        dplyr::left_join(temp_df, by = "Geneid")
+    }
+  }
+  
+  # Convert Entrezeid to Symbol using the provided database
+  message("transforming Entrezeid to Symbol")
+  matrix_count <- origin_matrix %>%
+    dplyr::right_join(data.frame(Geneid = Entrez_Gene_Id_db$ENSEMBL,
+                                 Gene = Entrez_Gene_Id_db$SYMBOL),
+                     by = "Geneid") %>%
+    dplyr::select(-Geneid) %>%
+    dplyr::group_by(Gene) %>%
+    dplyr::summarise(across(everything(), ~max(., na.rm = TRUE))) %>%
+    dplyr::mutate(row_sum = rowSums(.[, -which(names(.) == "Gene")], na.rm = TRUE)) %>%
+    dplyr::filter(row_sum != 0 & row_sum != -Inf & !is.na(row_sum)) %>%
+    dplyr::select(-row_sum) %>%
+    dplyr::relocate(Gene)
+  
+  # Save the count matrix as a text file and RDS file
+  write.table(matrix_count,
+             file = paste0(output_dir, "/matrix_count.txt"),
+             row.names = FALSE,
+             quote = FALSE)
+  saveRDS(matrix_count,
+          file = paste0(output_dir, "/matrix_count.RDS"))
+  
+  # Normalize the count matrix and save it as a text file and RDS file
+  matrix_norm <- matrix_count %>% 
+    tibble::column_to_rownames("Gene") %>% 
+    as.matrix() %>% 
+    {
+      m <- . + 1
+      m <- log2(m)
+      m
+    } %>% 
+    as.data.frame() %>% 
+    dplyr::mutate_if(~!is.numeric(.), as.numeric) %>% 
+    tibble::rownames_to_column("Gene")
+  
+  write.table(matrix_norm,
+             file = paste0(output_dir, "/matrix_norm.txt"),
+             row.names = FALSE,
+             quote = FALSE)
+  saveRDS(matrix_norm,
+          file = paste0(output_dir, "/matrix_norm.RDS"))
+  
+  # Return a list containing the count and normalized matrices
+  return(list(
+    count = matrix_count,
+    norm = matrix_norm
+  ))
+}
+```
+  
+```{r example-beaver_packhtseq}
+
+```
+  
+```{r tests-beaver_packhtseq}
+test_that("beaver_packhtseq works", {
+  expect_true(inherits(beaver_packhtseq, "function")) 
+})
+```
+  
+# beaver_packbismark
+    
+```{r function-beaver_packbismark}
+#' Process Bismark output to extract methylation information and save to a file
+#'
+#' This function takes Bismark output, filters for methylated cytosines, and extracts relevant information.
+#' It then formats the data and writes it to a new file.
+#'
+#' @param filein The path to the Bismark output file.
+#' @param fileout The path to the output file where processed data will be saved.
+#'
+#' @return The path to the output file.
+#'
+#' @export
+beaver_packbismark <- function(filein, fileout) {
+  # Print the output file path to the console
+  message(fileout)
+  
+  # Construct the command to process the Bismark output
+  # The command filters for lines where either $4 (methylation count) or $5 (unmethylated count) is greater than 0,
+  # then prints the chromosome, start position, end position, methylation level, and strand information.
+  # It also replaces '+' with 'F', '-' with 'R', and spaces with tabs.
+  command <- glue::glue("awk '($4 > 0) || ($5 > 0) {{print $1\".\"$2,$1,$2,$3,$4+$5,100*$4/($4+$5),100*$5/($4+$5)}}' {filein} | sed 's/+/F/g' | sed 's/-/R/g' | sed 's/[[:space:]]/\\t/g' > {fileout}")
+  
+  # Execute the system command
+  system(command = command)
+  
+  # Return the path to the output file
+  return(fileout)
+}
+```
+  
+```{r example-beaver_packbismark}
+
+```
+  
+```{r tests-beaver_packbismark}
+test_that("beaver_packbismark works", {
+  expect_true(inherits(beaver_packbismark, "function")) 
+})
+```
+  
+# beaver_packxenofilter
+    
+```{r function-beaver_packxenofilter}
+#' Run XenofilteR to filter graft vs host reads in bisulfite-seq data
+#'
+#' This function uses XenofilteR to separate graft (treated) and host (control) reads in bisulfite-seq data.
+#' It prepares a list of sample information, sets up the parallel computing parameters, and runs the XenofilteR function.
+#'
+#' @param filter_root The root directory for filtering output.
+#' @param graft The identifier for the graft samples.
+#' @param host The identifier for the host samples.
+#' @param threads The number of threads to use for parallel processing.
+#' @param MM_threshold The mismatch threshold for XenofilteR.
+#' @param Unmapped_penalty The penalty for unmapped reads in XenofilteR.
+#'
+#' @export
+beaver_packxenofilter <- function(filter_root, graft, host, threads, MM_threshold, Unmapped_penalty) {
+  # Print parameters to confirm
+  cat("Filter root:", filter_root, "\n")
+  cat("Graft:", graft, "\n")
+  cat("Host:", host, "\n")
+  cat("Threads:", threads, "\n")
+
+  # Find all report files and extract unique sample names
+  samples <- list.files(filter_root, "_val_1_bismark_bt2_PE_report.txt", recursive = TRUE) %>% 
+    stringr::str_remove(., "_val_1_bismark_bt2_PE_report.txt") %>% 
+    stringr::str_remove(., paste0(host, "/")) %>% 
+    stringr::str_remove(., paste0(graft, "/")) %>% 
+    unique()
+  
+  # Create a data frame with sample information
+  sample.list <- data.frame(
+    samples = samples
+  ) %>% 
+    dplyr::mutate(Graft = paste0(filter_root, "/", samples, "_fixed_", graft, ".bam")) %>% 
+    dplyr::mutate(Host = paste0(filter_root, "/", samples, "_fixed_", host, ".bam")) %>% 
+    dplyr::select(-samples)
+
+  # Set up parallel computing parameters
+  bp.param <- BiocParallel::SnowParam(workers = as.numeric(threads), type = "SOCK")
+  
+  # Try to delete the filtered bams directory if it exists
+  tryerror <- try(fs::dir_delete(paste0(filter_root, "/Filtered_bams")))
+
+  # Run XenofilteR with the prepared sample list and parameters
+  XenofilteR::XenofilteR(sample.list = sample.list, 
+                        destination.folder = filter_root, 
+                        bp.param = bp.param, output.names = NULL, 
+                        MM_threshold = MM_threshold, Unmapped_penalty = Unmapped_penalty)
+}
+```
+  
+```{r example-beaver_packxenofilter}
+
+```
+  
+```{r tests-beaver_packxenofilter}
+test_that("beaver_packxenofilter works", {
+  expect_true(inherits(beaver_packxenofilter, "function")) 
+})
+```
+  
+
+
+# beaver_rsync
+    
+```{r function-beaver_rsync}
+#' Execute rsync over SSH with password authentication
+#'
+#' This function uses rsync to synchronize files from a remote host to a local destination.
+#' It handles password authentication with sshpass and retries the command in case of failure.
+#'
+#' @param user The username for the remote host.
+#' @param host The hostname or IP address of the remote host.
+#' @param host_file The path to the file on the remote host to be synchronized.
+#' @param dest The local destination path for the synchronized file.
+#' @param passwd The password for the remote host.
+#'
+#' @return NULL
+#'
+#' @export
+beaver_rsync <- function(user, host, host_file, dest, passwd) {
+  checkSystemResult <- function(result) {
+    # Check if the result is a character and has no 'status' attribute, then return the system output
+    if (is.character(result) && is.null(attr(result, "status"))) {
+      sys_output <- result
+      return(sys_output)
+    }
+
+    # If the result is numeric, use it as the status; otherwise, get the 'status' attribute if available
+    if (is.numeric(result)) {
+      status <- result
+    } else {
+      status <- if (!is.null(attr(result, "status"))) attr(result, "status") else 0
+    }
+
+    # If the status is not 0, print a message indicating command failure
+    if (status != 0) message("--Command failed with status: ", status)
+
+    # Return the status
+    return(status)
+  }
+
+  # Construct the rsync command with sshpass for password authentication
+  command <- glue::glue("sshpass -p '{passwd}' rsync --partial --progress --timeout=240 --rsh='ssh -p 2222' '{user}@{host}:{host_file}' {dest}")
+  
+  # Execute the command and capture the status
+  status <- system(command, intern = FALSE, wait = TRUE, ignore.stdout = FALSE, ignore.stderr = FALSE)
+  
+  # Retry the command if it fails
+  while (checkSystemResult(status) != 0) {
+    message("--Retrying...")
+    status <- system(command, intern = FALSE, wait = TRUE, ignore.stdout = FALSE, ignore.stderr = FALSE)
+  }
+  
+  # Print a success message
+  message("OK")
+}
+```
+  
+```{r example-beaver_rsync}
+
+```
+  
+```{r tests-beaver_rsync}
+test_that("beaver_rsync works", {
+  expect_true(inherits(beaver_rsync, "function")) 
+})
+```
+  
+# beaverflow_install
+    
+```{r function-beaverflow_install}
+#' Install and Configure the Beaverflow Workflow Environment
+#'
+#' This function sets up the Beaverflow workflow environment by creating the necessary directory structure,
+#' fetching runtime files, installing required software packages, and configuring the environment.
+#' It supports different installation modes based on the detected engine (e.g., Docker, local) and user input.
+#'
+#' @param workflow_dir The directory where the Beaverflow workflow environment will be installed.
+#'   Defaults to the current working directory (`getwd()`).
+#' @param enigent The detected engine type. Can be one of "k8s", "container", or other values detected by `beaver_engine_detect()`.
+#'   Defaults to the result of `beaver_engine_detect()`.
+#' @return NULL
+#'
+#' @export
+#' @details
+#' The function performs the following steps:
+#' 1. Creates a directory structure under `workflow_dir` with folders such as "config", "data", "envs", etc.
+#' 2. Fetches runtime files (e.g., Snakefile) and R scripts from the `beaverdown2` package.
+#' 3. Installs required software packages using Conda, including Python environments and R packages.
+#' 4. Configures the environment based on the detected engine type and user input.
+#'
+#' If the detected engine is "k8s" or "container", it assumes a pre-built Docker image is used and prompts the user to confirm.
+#' If not, it installs Conda environments and R packages locally.
+#'
+#' Note that this function requires an active internet connection to download and install packages.
+#' Additionally, the user may need to download pre-built genomic files from a shared link and place them in the "inst/" directory.
+#'
+beaverflow_install <- function(workflow_dir = getwd(),
+                               enigent = beaver_engine_detect(),
+                               build_env = T){
+  whoami <- system(command = "whoami",intern = T)
+  message(glue::glue(">> Welcome!{whoami}."))
+  message(">> Building Beaverflow dir tree")
+  for (i in c("config","data","envs",
+              "inst","R","rules",
+              "saveRDS","temp","userspace",
+              "workflows","www")){
+    fs::dir_create(path = paste0(workflow_dir,"/",i))
+  }
+  message(">> Fetching workflow Runtime")
+  fs::file_create(path = paste0(workflow_dir,"/snakefile"))
+  message(">> Fetching Rscripts")
+  beaver_unpack <- function(src,
+                            dest){
+    rscripts <- inst_path <- system.file(glue::glue("{src}"), 
+                                       package = "beaverdown2")
+  rscripts_files <- list.files(path = rscripts,
+                               full.names = F)
+  package_rfiles <- paste0(rscripts,"/",rscripts_files)
+  if(is.null(dest)){
+    workflow_rfiles <- paste0(workflow_dir,"/",rscripts_files)
+  }else{
+    workflow_rfiles <- paste0(workflow_dir,"/",dest,"/",rscripts_files)
+  }
+  
+  for (i in 1:length(package_rfiles)){
+    fs::file_copy(path = package_rfiles[i],
+                  new_path = workflow_rfiles[i],
+                  overwrite = T)
+  }
+  }
+  beaver_unpack(src = "Rscripts",
+                dest = "R")
+  
+  beaver_unpack(src = "snakefiles",
+                dest = NULL)
+  
+  if (enigent %in% c("k8s","container")){
+    answer <- "unknow"
+    while(!(answer %in% c("1","2"))){
+      message(">> We assume you are using the pre-build docker image :")
+      message("1.yup")
+      message("2.No")
+      answer <- readline("Input your answer >> ")
+      if (answer == "1"){
+        type <- "root"
+      } else if(answer == "2"){
+        type <- "rootless"
+        }else{
+          message(">> Only 1 and 2 is allow,please retry.")
+          }
+    }
+    }else{
+    type <- "rootless"
+  }
+  
+  beaver_unpack(src = paste0(type,"_rules"),
+                dest = "rules")
+  
+  beaver_unpack(src = "workflows",
+                dest = "workflows")
+  
+  message(">> Building Run-Mode environment")
+  
+  if (type == "root"){
+    
+    message(">> All needed packages have been pre-installed in the docker image")
+    
+  }else{
+    # add build_env param here
+    
+    message(">> Check miniconda ...")
+    conda_try <- try(system(command = "conda env list",intern = T))
+    
+    if (class(conda_try) == "try-error"){
+      message(">> Sad!Conda is required,Please the following commands to install miniconda firstly:")
+      message(">> curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh | bash")
+      stop(">> Exit.")
+    }else{
+      message(">> Good News! you seems to have a conda version READY to be used. ")
+    }
+      command <- glue::glue("conda config --add channels bioconda &&\
+    conda config --add channels conda-forge &&\
+    conda config --set channel_priority strict &&\
+    conda create -n py27 python=2.7 -y &&\
+    conda create -n pyfastx -c bioconda pyfastx -y &&\
+    conda create -n multiqc  -c bioconda multiqc -y &&\
+    conda install -n base r-base -y &&\
+    conda install -n multiqc python=3.12.3 -y &&\
+    conda install -n multiqc numpy=1.26.4 -y &&\
+    conda create -n star -c bioconda star -y &&\
+    conda create -n htseq -c bioconda htseq -y &&\
+    conda create -n bismark -c bioconda bismark -y &&\
+    conda create -n fastqc -c bioconda fastqc  -y &&\
+    conda create -n snakemake -c bioconda snakemake  -y &&\
+    conda create -n qualimap -c bioconda qualimap  -y &&\
+    conda create -n seqkit -c bioconda seqkit  -y &&\
+    conda create -n seqtk -c bioconda seqtk  -y &&\
+    conda create -n trim_galore -c bioconda trim-galore  -y &&\
+    conda create -n picard -c bioconda picard -y &&\
+    conda install -n base r-ragg -y &&\
+    conda install -n base r-tidyverse -y &&\
+    conda install cmake -y &&\
+    conda install r-xml2 -y &&\
+    conda install bioconductor-rhtslib -y &&\
+    conda install -n base r-magick -y &&\
+    conda install -n base r-rJava -y &&\
+    conda install -n base r-devtools &&\
+    conda install -n base -c conda-forge freetype libcurl icu libjpeg-turbo libpng libtiff libxml2 pandoc -y &&\
+    conda install -n base R -e 'options ('repos' = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/'));
+      install.packages('pak',repos = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/')) ;
+      pak::pkg_install(c('DT','shinyWidgets','shiny','bslib','optparse',
+                         'openxlsx','NOISeq','XML','Repitools',
+                         'Rsamtools','rtracklayer','R6','reticulate', 
+                         'GSVA','graphite','igraph','ggraph','TCGAbiolinks',
+                         'SummarizedExperiment','doParallel','yaml','tinytex',
+                         'KEGGgraph', 'plotly',
+                         'pROC','sva','glue','fs',
+                         'png','reshape2',
+                         'readxl','sampling',
+                         'umap',
+                         'gridExtra','ggpubr',
+                         'GenomicRanges','data.table',
+                         'clusterProfiler','org.Hs.eg.db',
+                         'msigdbr','xlsx','KEGGREST','GenomicDataCommons',
+                         'foreach','doMC','Seurat', 
+                         'dbplyr', 'RColorBrewer',
+                         'rjson','mlr3verse',
+                         'limma','BSgenome',
+                         'BSgenome.Hsapiens.UCSC.hg19','bsseq'),
+                       upgrade = F,ask= FALSE, dependencies = NA);
+      pak::pkg_install(c('mlr-org/mlr3extralearners@*release'),upgrade = TRUE,ask= FALSE, dependencies = NA);
+      pak::pak('NKI-GCF/XenofilteR');
+      pak::pak('CompEpigen/scMethrix');
+      pak::pak('CompEpigen/methrix');
+      pak::pak('blastula');
+      devtools::install_github('mlr-org/mlr3proba');
+      tinytex::install_tinytex(force = TRUE);
+      tinytex::tlmgr_repo('http://mirrors.tuna.tsinghua.edu.cn/CTAN/');
+      pak::cache_clean()'")
+      
+      if (build_env){
+        message(">> Installing Conda envs and R packages ...")
+        system(command = command)
+      }
+      
+    
+  }
+  
+  message(">> Fetching Genomic files")
+  message(">>> You need to download pre-build Genomic files through our shared link:https://pan.quark.cn/s/e0908b382183")
+  message(">>> please place these files under the dir : inst/")
+  message(">>> or a self-build of bismark/STAR-required refer Genome is suggested.")
+  message(">>> Congratulations! we hope to share you with the enjoyment of the R6-OOP BeaverGandalf,and,")
+  message(glue::glue(">>> You're a very fine person, Dear {whoami}. 
+                     And I'm very fond of you. 
+                     But we're only quite little fellows...in a wide world after all."))
+  
+}
+
+
+```
+  
+```{r example-beaverflow_install}
+
+```
+  
+```{r tests-beaverflow_install}
+test_that("beaverflow_install works", {
+  expect_true(inherits(beaverflow_install, "function")) 
+})
+```
+  
+```{r development-inflate, eval=FALSE}
+# Keep eval=FALSE to avoid infinite loop in case you hit the knit button
+# Execute in the console directly
+fusen::inflate(flat_file = "dev/flat_beaverdown2.Rmd", 
+               vignette_name = "Get started")
+```
+
+
+# Inflate your package
+
+You're one inflate from paper to box.
+Build your package from this very Rmd using `fusen::inflate()`
+
+- Verify your `"DESCRIPTION"` file has been updated
+- Verify your function is in `"R/"` directory
+- Verify your test is in `"tests/testthat/"` directory
+- Verify this Rmd appears in `"vignettes/"` directory

@@ -1,0 +1,25 @@
+#configfile: "config/config.yaml"
+
+SIDs = config["SIDs"]
+species = config["species"]
+chrs = config["chrs"]
+# 运行所有流程时，rule all 需要加入所有的output汇总
+rule all:
+  input:
+    expand(os.path.join(config["bsmapDir"], "{sample}_{species}.bam"), sample=SIDs,species = species) ,
+    expand(os.path.join(config["outdir_qualimap"],"{sample}_{species}","qualimapReport.html") , sample=SIDs,species = species),
+    expand(os.path.join(config["qcDir"],"GCbias","{sample}_{species}", "gc_bias_metrics.txt"),sample=SIDs,species = species),
+    expand(os.path.join(config["qcDir"],"GCbias","{sample}_{species}", "gc_bias_metrics.pdf"),sample=SIDs,species = species),
+    expand(os.path.join(config["qcDir"],"GCbias","{sample}_{species}", "summary_metrics.txt"),sample=SIDs,species = species),
+    os.path.join(config["qc_summary"], "multiqc_report.html"),
+    os.path.join(config["SID_log"], "step2_success.txt")
+
+# multiqc
+
+include:"rules/multiqc.smk"
+
+# step checker
+
+include: "rules/BSseq_step2_checker.smk"
+
+
