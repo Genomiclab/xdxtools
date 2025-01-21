@@ -10,6 +10,7 @@
 #'   Defaults to the current working directory (`getwd()`).
 #' @param enigent The detected engine type. Can be one of "k8s", "container", or other values detected by `beaver_engine_detect()`.
 #'   Defaults to the result of `beaver_engine_detect()`.
+#' 
 #' @return NULL
 #'
 #' @export
@@ -101,8 +102,19 @@ beaverflow_install <- function(workflow_dir = getwd(),
     # add build_env param here
     
     message(">> Check miniconda ...")
+    
+    condaType <- readline("What is your TYPE of conda installed ? [miniconda3|micromamba] >> ")
+    
+    if (grepl("mamba",condaType)){
+      conda_call <- "alias conda=mamba && conda"
+      message(">> Warning,Please alias mamba to conda in .bashrc to avoid errors in using beaverflow.")
+    }else if(grepl("conda",condaType)){
+      conda_call <- "conda"
+    }else{
+      stop(">> please input a correct conda version")
+    }
   
-    conda_try <- try(system(command = glue::glue("export PATH={Sys.getenv('HOME')}/miniconda3/bin:$PATH && conda env list"),
+    conda_try <- try(system(command = glue::glue("export PATH={Sys.getenv('HOME')}/{condaType}/bin:$PATH && {conda_call} env list"),
                             intern = T))
     
     if (class(conda_try) == "try-error"){
@@ -126,11 +138,15 @@ beaverflow_install <- function(workflow_dir = getwd(),
     }
       command_script <- system.file("install_script/beaverConda_pak_install.sh",
                                     package = "beaverdown2")
-      run_script <- glue::glue("export PATH={Sys.getenv('HOME')}/miniconda3/bin:$PATH && chmod +x {command_script} && bash {command_script} ")
+      
+      run_script <- glue::glue("export PATH={Sys.getenv('HOME')}/{condaType}/bin:$PATH && chmod +x {command_script} && bash {command_script} ")
+      
+      if (conda_call != "conda") run_script <- paste("alias conda=mamba &&",                                        
+                                                     run_script)
       
       if (build_env){
         message(">> Installing Conda envs and R packages ...")
-        system(command = run_script )
+        system(command = run_script)
       }
     
   }

@@ -10,8 +10,14 @@
 #'
 #' @export
 beaver_engine_detect <- function(){
-  k8s_try <- try(system(command = "kubectl version",intern = T))
-  srun_try <- try(system(command = "srun -V",intern = T))
+  k8s_try <- try(system(command = "kubectl version",
+                        intern = T,
+                        ignore.stdout = TRUE, 
+                        ignore.stderr = TRUE))
+  srun_try <- try(system(command = "srun -V",
+                         intern = T,
+                         ignore.stdout = TRUE, 
+                         ignore.stderr = TRUE))
   if (class(k8s_try) != "try-error"){
     return("k8s")
   }else if (class(srun_try) != "try-error"){
