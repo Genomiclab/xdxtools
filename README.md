@@ -3,7 +3,7 @@
 
 # Beaverdown2: A Bioinformatics Workflow Management Package
 
-[中文](https://github.com/rainoffallingstar/beaverdown2/blob/main/README_zh.md)
+[中文](https://github.com/rainoffallingstar/beaverdown2/blob/master/README_zh.md)
 
 ## Introduction
 
