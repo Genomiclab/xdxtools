@@ -85,20 +85,92 @@ pak::pak("rainoffallingstar/beaverdown2")
 library(Beaverdown2) 
 beaverflow_install(workflow_dir = "/path/to/your/workflow_dir",build_env = T)
 ```
+当 Conda 环境构建完成后，请下载我们提供的位于 `inst/` 文件夹下的参考基因组文件，或者建议自行构建 Bismark/STAR 所需的参考基因组文件。这些文件路径需要在 `BeaverGandalf$new()` 中指定，相关参数包括 `genomeFile`、`gnome_fasta`、`cgGR_gz`、`CGI`、`rnaseq_gtf` 和 `rnaseq_ref`。
+
+```bash
+inst
+├── Entrez_Gene_Id_db.RDS
+├── hg19
+│   ├── hg19_cpgIsland.bed # cgGR_gz
+│   ├── hg19_CpG_sites.gz # CGI
+├── pdx # genomeFile c("human","mouse")
+│   ├── homo_sapiens
+│   │   └── hg19.fasta # gnome_fasta c(".../.fasta",".../.fasta")
+│   └── mouse
+│       ├── GRCm38.fasta
+├── rnaseq
+    └── homo_sapiens # rnaseq_ref
+       ├── hg19.ensGene.gtf 
+       ├── hg19.ensGene_sorted.gtf # rnaseq_gtf
+       ├── hg19.fasta
+       
+```
+当创建 BeaverGandalf 对象时，结果目录将在 {userspace}/{jobid}（也是 BeaverGandalf$new() 的参数）中通过 gandalf_create_filework 方法创建。
+
+
+``` bash
+{jobid}
+├── QC
+│   ├── multiqc_report.html
+├── config
+├── data
+├── log
+├── analysis
+├── workflow
+    ├── log
+    ├── mCall
+    ├── bsmap
+    ├── fastqc_clean
+    ├── fastqc_raw
+    ├── QC
+    ├── trim
+    ├── uxm
+    ├── clubcpg
+    ├── mhap
+    ├── RData
+```
+
+
 
 ## **使用方法**
 
 ### **初始化工作流**
 
 ```         
-library(Beaverdown2)  
-gandalf_RRBS <- BeaverGandalf$new(Mode = "RRBS",
-                                 species1 = "human",    
-                                 species2 = "mouse",                  
-                                  uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),
-                                  pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),
-                                  workflow_endpoint = "3",
-                                  user_email = "whoami@qq.com")
+library(beaverdown2) 
+
+# in detail
+
+gandalf_RRBS <- BeaverGandalf$new(
+Mode = "RRBS", 
+species1 = "human",     
+species2 = "mouse", # if species2 is not NULL,PDX mode is used and graft and host params will work
+graft = "human",
+host = "mouse",
+error = 0.2, adapter1 = "AGATCGGAAGAGC",adapter2 = "AGATCGGAAGAGC", C1 = 0,C2 = 0,T1 = 0,T2 = 0, # default params for trim adapters
+read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10, # default params for clubcpg, clubcpg will be used in future development. 
+suffix1 = "_R1.fastq.gz" # use "_R1.fastq.gz" is now suggested to name the original fastq files, suffix2 will be computed
+uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to fastq folder and generate a data.frame for input   
+pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,in  
+workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
+user_email = "whoami@qq.com", # email needs additional setting
+userspace = "userspace",userid = NULL,new_userid_always = T # default setting of Result dirs, userid is generated randomly if NULL,use current jobid if new_userid_always is TRUE
+)
+
+# in short
+
+gandalf_RRBS <- BeaverGandalf$new(
+Mode = "RRBS", 
+species1 = "human",     
+species2 = "mouse", # if species2 is not NULL,PDX mode is used and graft and host params will work
+graft = "human",
+host = "mouse",
+uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to fastq folder and generate a data.frame for input   
+pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,in  
+workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
+user_email = "whoami@qq.com" # email needs additional setting
+)
+
 ```
 
 ### **运行工作流**

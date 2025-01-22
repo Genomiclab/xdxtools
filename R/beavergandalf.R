@@ -13,9 +13,6 @@
 #' @field species2  species2
 #' @field host host 
 #' @field cgGR_gz cgGR_gz
-#' @field CGIRData CGIRData
-#' @field CCGG CCGG 
-#' @field hg19_genomeFile hg19_genomeFile
 #' @field qcDir_before qcDir_before
 #' @field qcDir_after qcDir_after
 #' @field bsmapDir_bamtmp bsmapDir_bamtmp
@@ -29,15 +26,13 @@
 #' @field PDX_pipeline A logical indicating whether PDX mode is enabled.
 #' @field fastqDir The directory for FASTQ files.
 #' @field adapter1 Adapter sequences for trimming.
-#' @field adapter2 Adapter sequences for trimming.
-#' @field cgGR Paths to reference data files (e.g., CpG sites, CGI).
+#' @field adapter2 Adapter sequences for trimming
 #' @field CGI Paths to reference data files (e.g., CpG sites, CGI).
-#' @field CpG Paths to reference data files (e.g., CpG sites, CGI).
 #' @field genomeFile Paths to genome files.
 #' @field gnome_fasta Paths to genome files.
 #' @field rnaseq_gtf Paths to RNAseq reference files.
 #' @field rnaseq_ref Paths to RNAseq reference files.
-#' @field workflow_endpoint A named logical vector indicating the workflow endpoint.
+#' @field workflow_endpoint workflow endpoint.
 #' @field chrs A vector of chromosome names.
 #' @field read1_5 Read trimming parameters.
 #' @field read1_3 Read trimming parameters.
@@ -61,7 +56,7 @@
 #' @field SID_log The directory for log files.
 #' @field trimDir Directories for trimming, BSMAP, and methylation calling.
 #' @field bsmapDir Directories for trimming, BSMAP, and methylation calling.
-#' @field outDir_mCall Directories for trimming, BSMAP, and methylation calling.
+#' @field outDir_mCall Directories for methylation calling.
 #' @field ourDirUmx Directories for UMX and Qualimap results.
 #' @field outdir_qualimap Directories for UMX and Qualimap results.
 #' @field outDir_mhap Directories for M-HAP and RData files.
@@ -102,18 +97,19 @@ BeaverGandalf <- R6::R6Class(
     read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10,
     pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
     userid = NULL,fixed = NULL,yaml_file = NULL,
-    cgGR = "inst/hg19/hg19_CpG_sites.RData",
-    cgGR_gz = NULL,
-    CGI = "inst/hg19/hg19_cpgIsland.bed",gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
-                                                          "inst/pdx/mouse/GRCm38.fasta"),
+    #cgGR = "inst/hg19/hg19_CpG_sites.RData",
+    cgGR_gz = "inst/hg19/hg19_CpG_sites.gz",
+    CGI = "inst/hg19/hg19_cpgIsland.bed",
+    gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
+                    "inst/pdx/mouse/GRCm38.fasta"),
     genomeFile = c("inst/pdx/homo_sapiens/",
                     "inst/pdx/mouse/"),
     rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
     rnaseq_ref = "inst/rnaseq/homo_sapiens/",
-    CGIRData = "inst/hg19/hg19_CGI_GR.RData",
-    CCGG = "inst/hg19/CCGG.RData",
-    CpG  = "inst/hg19/hg19_CpG_sites.RData",
-    hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
+    #CGIRData = "inst/hg19/hg19_CGI_GR.RData",
+    #CCGG = "inst/hg19/CCGG.RData",
+    #CpG  = "inst/hg19/hg19_CpG_sites.RData",
+    #hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
     workflowDir   = "/workflow",
     analysisDir = "/analysis",
     selfconfig = "/config",
@@ -171,17 +167,12 @@ BeaverGandalf <- R6::R6Class(
 #' @param userid \code{character} or \code{NULL} Unique user ID (default: NULL).
 #' @param fixed \code{character} or \code{NULL} Fixed parameters string (default: NULL).
 #' @param yaml_file \code{character} or \code{NULL} Path to the YAML configuration file (default: NULL).
-#' @param cgGR \code{character} Path to CpG sites RData file (default: "inst/hg19/hg19_CpG_sites.RData").
 #' @param cgGR_gz \code{character} or \code{NULL} Gzipped version of cgGR (default: NULL).
 #' @param CGI \code{character} Path to CpG islands BED file (default: "inst/hg19/hg19_cpgIsland.bed").
 #' @param gnome_fasta \code{character} or \code{vector} Path(s) to genome FASTA files (default: hg19 and GRCm38).
 #' @param genomeFile \code{character} or \code{vector} Path(s) to genome files (default: hg19 and GRCm38).
 #' @param rnaseq_gtf \code{character} Path to RNAseq GTF file (default: "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf").
 #' @param rnaseq_ref \code{character} Path to RNAseq reference directory (default: "inst/rnaseq/homo_sapiens/").
-#' @param CGIRData \code{character} Path to CGI RData file (default: "inst/hg19/hg19_CGI_GR.RData").
-#' @param CCGG \code{character} Path to CCGG RData file (default: "inst/hg19/CCGG.RData").
-#' @param CpG \code{character} Path to CpG sites RData file (default: "inst/hg19/hg19_CpG_sites.RData").
-#' @param hg19_genomeFile \code{character} Path to hg19 genome file (default: "inst/hg19/ucsc_hg19-20180821.fa").
 #' @param fastqDir \code{character} Directory for FASTQ files (default: "/data").
 #' @param workflowDir \code{character} Directory for workflow files (default: "/workflow").
 #' @param analysisDir \code{character} Directory for analysis results (default: "/analysis").
@@ -226,18 +217,15 @@ BeaverGandalf <- R6::R6Class(
                           pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
                           userid = NULL,fixed = NULL,
                           yaml_file = NULL,
-                          cgGR = "inst/hg19/hg19_CpG_sites.RData",
-                          cgGR_gz = NULL,
-                          CGI = "inst/hg19/hg19_cpgIsland.bed",gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
-                                                                               "inst/pdx/mouse/GRCm38.fasta"),
+                          #cgGR = "inst/hg19/hg19_CpG_sites.RData",
+                          cgGR_gz = "inst/hg19/hg19_CpG_sites.gz",
+                          CGI = "inst/hg19/hg19_cpgIsland.bed",
+                          gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
+                                          "inst/pdx/mouse/GRCm38.fasta"),
                           genomeFile = c("inst/pdx/homo_sapiens/",
                                          "inst/pdx/mouse/"),
                           rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
                           rnaseq_ref = "inst/rnaseq/homo_sapiens/",
-                          CGIRData = "inst/hg19/hg19_CGI_GR.RData",
-                          CCGG = "inst/hg19/CCGG.RData",
-                          CpG  = "inst/hg19/hg19_CpG_sites.RData",
-                          hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
                           fastqDir = "/data",
                           workflowDir   = "/workflow",
                           analysisDir = "/analysis",
@@ -294,17 +282,17 @@ BeaverGandalf <- R6::R6Class(
       self$pdata = pdata
       self$uploadfile = uploadfile
       self$genomeFile = genomeFile
-      self$cgGR = cgGR
-      self$cgGR_gz = stringr::str_replace(cgGR,"RData","gz")
+      #self$cgGR = cgGR
+      self$cgGR_gz = cgGR_gz
       self$CGI = CGI
       self$gnome_fasta = gnome_fasta
       self$genomeFile = genomeFile
       self$rnaseq_gtf = rnaseq_gtf
       self$rnaseq_ref = rnaseq_ref
-      self$CGIRData = CGIRData
-      self$CCGG = CCGG
-      self$CpG  = CpG
-      self$hg19_genomeFile = hg19_genomeFile
+      #self$CGIRData = CGIRData
+      #self$CCGG = CCGG
+      #self$CpG  = CpG
+      #self$hg19_genomeFile = hg19_genomeFile
       # 一些需要计算的参数
       if (is.null(species)){
         self$species <- c(species1,species2)
@@ -632,13 +620,13 @@ BeaverGandalf <- R6::R6Class(
         T2  = self$T2,
         genomeFile = self$genomeFile,
         gnome_fasta = self$gnome_fasta,
-        hg19_genomeFile = self$hg19_genomeFile,
-        cgGR = self$cgGR,
+        #hg19_genomeFile = self$hg19_genomeFile,
+        #cgGR = self$cgGR,
         cgGR_gz = self$cgGR_gz,
         CGI = self$CGI,
-        CGIRData = self$CGIRData,
-        CCGG = self$CCGG,
-        CpG  = self$CpG,
+        #CGIRData = self$CGIRData,
+        #CCGG = self$CCGG,
+        #CpG  = self$CpG,
         workDir = paste0(self$userspace,"/",self$userid),
         workflowDir = self$workflowDir,
         analysisDir = self$analysisDir,

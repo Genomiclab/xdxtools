@@ -91,20 +91,93 @@ running:
 
     beaverflow_install(workflow_dir = "/path/to/your/workflow_dir", build_env = TRUE)
 
+When Conda envs is built, [download the refer Genomic
+files](https://pan.quark.cn/s/e0908b382183) we provide under `inst/`, or
+a self-build of bismark/STAR-required refer Genomic files is
+suggested.These file dirs is required in `BeaverGandalf$new()`, these
+params are `genomeFile,gnome_fasta,cgGR_gz,CGI,rnaseq_gtf,rnaseq_ref`
+
+``` bash
+inst
+├── Entrez_Gene_Id_db.RDS
+├── hg19
+│   ├── hg19_cpgIsland.bed # cgGR_gz
+│   ├── hg19_CpG_sites.gz # CGI
+├── pdx # genomeFile c("human","mouse)
+│   ├── homo_sapiens
+│   │   └── hg19.fasta #gnome_fasta c(".../.fasta",".../.fasta")
+│   └── mouse
+│       ├── GRCm38.fasta
+├── rnaseq
+    └── homo_sapiens # rnaseq_ref
+       ├── hg19.ensGene.gtf 
+       ├── hg19.ensGene_sorted.gtf # rnaseq_gtf
+       ├── hg19.fasta
+       
+```
+
+When `BeaverGandalf` is created, the result dirs will be created in the
+`{userspace}/{jobid}`(also params of `BeaverGandalf$new()`) by
+`gandalf_create_filework` method.
+
+``` bash
+{jobid}
+├── QC
+│   ├── multiqc_report.html
+├── config
+├── data
+├── log
+├── analysis
+├── workflow
+    ├── log
+    ├── mCall
+    ├── bsmap
+    ├── fastqc_clean
+    ├── fastqc_raw
+    ├── QC
+    ├── trim
+    ├── uxm
+    ├── clubcpg
+    ├── mhap
+    ├── RData
+```
+
 ## **Usage**
 
 ### **Initialize Workflow**
 
-    library(Beaverdown2) 
+    library(beaverdown2) 
+
+    # in detail
+
     gandalf_RRBS <- BeaverGandalf$new(
     Mode = "RRBS", 
     species1 = "human",     
-    species2 = "mouse",
+    species2 = "mouse", # if species2 is not NULL,PDX mode is used and graft and host params will work
     graft = "human",
-    uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),     
-    pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),     
-    workflow_endpoint = "3",     
-    user_email = "whoami@qq.com"
+    host = "mouse",
+    error = 0.2, adapter1 = "AGATCGGAAGAGC",adapter2 = "AGATCGGAAGAGC", C1 = 0,C2 = 0,T1 = 0,T2 = 0, # default params for trim adapters
+    read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10, # default params for clubcpg, clubcpg will be used in future development. 
+    suffix1 = "_R1.fastq.gz" # use "_R1.fastq.gz" is now suggested to name the original fastq files, suffix2 will be computed
+    uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to fastq folder and generate a data.frame for input   
+    pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,in  
+    workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
+    user_email = "whoami@qq.com", # email needs additional setting
+    userspace = "userspace",userid = NULL,new_userid_always = T # default setting of Result dirs, userid is generated randomly if NULL,use current jobid if new_userid_always is TRUE
+    )
+
+    # in short
+
+    gandalf_RRBS <- BeaverGandalf$new(
+    Mode = "RRBS", 
+    species1 = "human",     
+    species2 = "mouse", # if species2 is not NULL,PDX mode is used and graft and host params will work
+    graft = "human",
+    host = "mouse",
+    uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to fastq folder and generate a data.frame for input   
+    pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,in  
+    workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
+    user_email = "whoami@qq.com" # email needs additional setting
     )
 
 ### **Run Workflow**

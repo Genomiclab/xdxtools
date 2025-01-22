@@ -34,12 +34,6 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 
 \item{\code{cgGR_gz}}{cgGR_gz}
 
-\item{\code{CGIRData}}{CGIRData}
-
-\item{\code{CCGG}}{CCGG}
-
-\item{\code{hg19_genomeFile}}{hg19_genomeFile}
-
 \item{\code{qcDir_before}}{qcDir_before}
 
 \item{\code{qcDir_after}}{qcDir_after}
@@ -66,13 +60,9 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 
 \item{\code{adapter1}}{Adapter sequences for trimming.}
 
-\item{\code{adapter2}}{Adapter sequences for trimming.}
-
-\item{\code{cgGR}}{Paths to reference data files (e.g., CpG sites, CGI).}
+\item{\code{adapter2}}{Adapter sequences for trimming}
 
 \item{\code{CGI}}{Paths to reference data files (e.g., CpG sites, CGI).}
-
-\item{\code{CpG}}{Paths to reference data files (e.g., CpG sites, CGI).}
 
 \item{\code{genomeFile}}{Paths to genome files.}
 
@@ -82,7 +72,7 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 
 \item{\code{rnaseq_ref}}{Paths to RNAseq reference files.}
 
-\item{\code{workflow_endpoint}}{A named logical vector indicating the workflow endpoint.}
+\item{\code{workflow_endpoint}}{workflow endpoint.}
 
 \item{\code{chrs}}{A vector of chromosome names.}
 
@@ -130,7 +120,7 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 
 \item{\code{bsmapDir}}{Directories for trimming, BSMAP, and methylation calling.}
 
-\item{\code{outDir_mCall}}{Directories for trimming, BSMAP, and methylation calling.}
+\item{\code{outDir_mCall}}{Directories for methylation calling.}
 
 \item{\code{ourDirUmx}}{Directories for UMX and Qualimap results.}
 
@@ -220,17 +210,12 @@ run on different computing environments (e.g., Kubernetes, Slurm).
   userid = NULL,
   fixed = NULL,
   yaml_file = NULL,
-  cgGR = "inst/hg19/hg19_CpG_sites.RData",
-  cgGR_gz = NULL,
+  cgGR_gz = "inst/hg19/hg19_CpG_sites.gz",
   CGI = "inst/hg19/hg19_cpgIsland.bed",
   gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta", "inst/pdx/mouse/GRCm38.fasta"),
   genomeFile = c("inst/pdx/homo_sapiens/", "inst/pdx/mouse/"),
   rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
   rnaseq_ref = "inst/rnaseq/homo_sapiens/",
-  CGIRData = "inst/hg19/hg19_CGI_GR.RData",
-  CCGG = "inst/hg19/CCGG.RData",
-  CpG = "inst/hg19/hg19_CpG_sites.RData",
-  hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
   fastqDir = "/data",
   workflowDir = "/workflow",
   analysisDir = "/analysis",
@@ -324,8 +309,6 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 
 \item{\code{yaml_file}}{\code{character} or \code{NULL} Path to the YAML configuration file (default: NULL).}
 
-\item{\code{cgGR}}{\code{character} Path to CpG sites RData file (default: "inst/hg19/hg19_CpG_sites.RData").}
-
 \item{\code{cgGR_gz}}{\code{character} or \code{NULL} Gzipped version of cgGR (default: NULL).}
 
 \item{\code{CGI}}{\code{character} Path to CpG islands BED file (default: "inst/hg19/hg19_cpgIsland.bed").}
@@ -337,14 +320,6 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 \item{\code{rnaseq_gtf}}{\code{character} Path to RNAseq GTF file (default: "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf").}
 
 \item{\code{rnaseq_ref}}{\code{character} Path to RNAseq reference directory (default: "inst/rnaseq/homo_sapiens/").}
-
-\item{\code{CGIRData}}{\code{character} Path to CGI RData file (default: "inst/hg19/hg19_CGI_GR.RData").}
-
-\item{\code{CCGG}}{\code{character} Path to CCGG RData file (default: "inst/hg19/CCGG.RData").}
-
-\item{\code{CpG}}{\code{character} Path to CpG sites RData file (default: "inst/hg19/hg19_CpG_sites.RData").}
-
-\item{\code{hg19_genomeFile}}{\code{character} Path to hg19 genome file (default: "inst/hg19/ucsc_hg19-20180821.fa").}
 
 \item{\code{fastqDir}}{\code{character} Directory for FASTQ files (default: "/data").}
 
