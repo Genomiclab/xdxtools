@@ -80,10 +80,10 @@ pak::pak("rainoffallingstar/beaverdown2")
     library(Beaverdown2) 
     beaverflow_install(workflow_dir = "/path/to/your/workflow_dir",build_env = T)
 
-当 Conda 环境构建完成后，请下载我们提供的位于 `inst/`
-文件夹下的参考基因组文件，或者建议自行构建 Bismark/STAR
-所需的参考基因组文件。这些文件路径需要在 `BeaverGandalf$new()`
-中指定，相关参数包括
+当 Conda 环境构建完成后，请下载我们提供的需放置于 `inst/`
+文件夹下的[参考基因组文件](https://pan.quark.cn/s/e0908b382183)
+，或者建议自行构建 Bismark/STAR 所需的参考基因组文件。这些文件路径需要在
+`BeaverGandalf$new()` 中指定，相关参数包括
 `genomeFile`、`gnome_fasta`、`cgGR_gz`、`CGI`、`rnaseq_gtf` 和
 `rnaseq_ref`。
 
@@ -106,8 +106,9 @@ inst
        
 ```
 
-当创建 BeaverGandalf 对象时，结果目录将在 {userspace}/{jobid}（也是
-BeaverGandalf\$new() 的参数）中通过 gandalf_create_filework 方法创建。
+当创建 BeaverGandalf 对象时，结果目录将在 `{userspace}/{jobid}`（也是
+`BeaverGandalf$new()` 的参数）中通过 `gandalf_create_filework`
+方法创建。
 
 ``` bash
 {jobid}
@@ -153,7 +154,7 @@ uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to 
 pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,inline_barcode_sequence  
 workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
 user_email = "whoami@qq.com", # email needs additional setting
-userspace = "userspace",userid = NULL,new_userid_always = T # default setting of Result dirs, userid is generated randomly if NULL,use current jobid if new_userid_always is TRUE
+userspace = "userspace",userid = NULL,new_userid_always = T # default setting of Result dirs, userid is generated randomly if NULL,use current jobid if new_userid_always is FALSE
 )
 
 # in short

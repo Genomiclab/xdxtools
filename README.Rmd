@@ -156,7 +156,7 @@ uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to 
 pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,inline_barcode_sequence 
 workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
 user_email = "whoami@qq.com", # email needs additional setting
-userspace = "userspace",userid = NULL,new_userid_always = T # default setting of Result dirs, userid is generated randomly if NULL,use current jobid if new_userid_always is TRUE
+userspace = "userspace",userid = NULL,new_userid_always = T # default setting of Result dirs, userid is generated randomly if NULL,use current jobid if new_userid_always is FALSE
 )
 
 # in short
