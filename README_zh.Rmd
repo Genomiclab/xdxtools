@@ -136,7 +136,7 @@ inst
 
 ### **初始化工作流**
 
-```         
+```R         
 library(beaverdown2) 
 
 # in detail
@@ -175,7 +175,7 @@ user_email = "whoami@qq.com" # email needs additional setting
 
 ### **运行工作流**
 
-```         
+```R         
 # 处理fastq 文件
 gandalf_RRBS$gandalf_fastq_move(method = "copy") # 可以改进为move
 # 初始化运行目录
@@ -188,14 +188,14 @@ gandalf_RRBS$gandalf2wars(dry_run = F,snakemake_condaenv = "snakemake",use_sbatc
 
 ### **聚合结果**
 
-```         
+```R         
 # 聚合结果并压缩 
 gandalf_RRBS$gandalf_aggResult(resultType = "matrix", method = "zip")
 ```
 
 ### **更新工作流**
 
-```         
+```R         
 update_gandalf(gandalf_RRBS)
 ```
 

@@ -135,59 +135,67 @@ BeaverGandalf\$new() 的参数）中通过 gandalf_create_filework 方法创建�
 
 ### **初始化工作流**
 
-    library(beaverdown2) 
+``` r
+library(beaverdown2) 
 
-    # in detail
+# in detail
 
-    gandalf_RRBS <- BeaverGandalf$new(
-    Mode = "RRBS", 
-    species1 = "human",     
-    species2 = "mouse", # if species2 is not NULL,PDX mode is used and graft and host params will work
-    graft = "human",
-    host = "mouse",
-    error = 0.2, adapter1 = "AGATCGGAAGAGC",adapter2 = "AGATCGGAAGAGC", C1 = 0,C2 = 0,T1 = 0,T2 = 0, # default params for trim adapters
-    read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10, # default params for clubcpg, clubcpg will be used in future development. 
-    suffix1 = "_R1.fastq.gz" # use "_R1.fastq.gz" is now suggested to name the original fastq files, suffix2 will be computed
-    uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to fastq folder and generate a data.frame for input   
-    pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,in  
-    workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
-    user_email = "whoami@qq.com", # email needs additional setting
-    userspace = "userspace",userid = NULL,new_userid_always = T # default setting of Result dirs, userid is generated randomly if NULL,use current jobid if new_userid_always is TRUE
-    )
+gandalf_RRBS <- BeaverGandalf$new(
+Mode = "RRBS", 
+species1 = "human",     
+species2 = "mouse", # if species2 is not NULL,PDX mode is used and graft and host params will work
+graft = "human",
+host = "mouse",
+error = 0.2, adapter1 = "AGATCGGAAGAGC",adapter2 = "AGATCGGAAGAGC", C1 = 0,C2 = 0,T1 = 0,T2 = 0, # default params for trim adapters
+read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10, # default params for clubcpg, clubcpg will be used in future development. 
+suffix1 = "_R1.fastq.gz" # use "_R1.fastq.gz" is now suggested to name the original fastq files, suffix2 will be computed
+uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to fastq folder and generate a data.frame for input   
+pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,in  
+workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
+user_email = "whoami@qq.com", # email needs additional setting
+userspace = "userspace",userid = NULL,new_userid_always = T # default setting of Result dirs, userid is generated randomly if NULL,use current jobid if new_userid_always is TRUE
+)
 
-    # in short
+# in short
 
-    gandalf_RRBS <- BeaverGandalf$new(
-    Mode = "RRBS", 
-    species1 = "human",     
-    species2 = "mouse", # if species2 is not NULL,PDX mode is used and graft and host params will work
-    graft = "human",
-    host = "mouse",
-    uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to fastq folder and generate a data.frame for input   
-    pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,in  
-    workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
-    user_email = "whoami@qq.com" # email needs additional setting
-    )
+gandalf_RRBS <- BeaverGandalf$new(
+Mode = "RRBS", 
+species1 = "human",     
+species2 = "mouse", # if species2 is not NULL,PDX mode is used and graft and host params will work
+graft = "human",
+host = "mouse",
+uploadfile = use_sever_fastq(serverpath = "/project/PDX_COAD_STAD"),  # dirs to fastq folder and generate a data.frame for input   
+pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of samples includeing at least 2 col : sampleid,in  
+workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
+user_email = "whoami@qq.com" # email needs additional setting
+)
+```
 
 ### **运行工作流**
 
-    # 处理fastq 文件
-    gandalf_RRBS$gandalf_fastq_move(method = "copy") # 可以改进为move
-    # 初始化运行目录
-    gandalf_RRBS$gandalf_create_filework()
-    # 向运行目录写入config文件
-    gandalf_RRBS$gandalf_make_config()
-    # 调用snakemake 运行指定流程
-    gandalf_RRBS$gandalf2wars(dry_run = F,snakemake_condaenv = "snakemake",use_sbatch = F)
+``` r
+# 处理fastq 文件
+gandalf_RRBS$gandalf_fastq_move(method = "copy") # 可以改进为move
+# 初始化运行目录
+gandalf_RRBS$gandalf_create_filework()
+# 向运行目录写入config文件
+gandalf_RRBS$gandalf_make_config()
+# 调用snakemake 运行指定流程
+gandalf_RRBS$gandalf2wars(dry_run = F,snakemake_condaenv = "snakemake",use_sbatch = F)
+```
 
 ### **聚合结果**
 
-    # 聚合结果并压缩 
-    gandalf_RRBS$gandalf_aggResult(resultType = "matrix", method = "zip")
+``` r
+# 聚合结果并压缩 
+gandalf_RRBS$gandalf_aggResult(resultType = "matrix", method = "zip")
+```
 
 ### **更新工作流**
 
-    update_gandalf(gandalf_RRBS)
+``` r
+update_gandalf(gandalf_RRBS)
+```
 
 ## **支持与反馈**
 

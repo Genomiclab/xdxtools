@@ -138,7 +138,7 @@ When `BeaverGandalf` is created, the result dirs will be created in the `{usersp
 
 ### **Initialize Workflow**
 
-```         
+```R         
 library(beaverdown2) 
 
 # in detail
@@ -177,7 +177,7 @@ user_email = "whoami@qq.com" # email needs additional setting
 
 ### **Run Workflow**
 
-```         
+```R         
 # Process fastq files 
 
 gandalf_RRBS$gandalf_fastq_move(method = "copy")  # another option is "move" 
@@ -203,7 +203,7 @@ use_sbatch = FALSE)
 
 ### **Aggregate Results**
 
-```         
+```R         
 # Aggregate results and compress
 
 gandalf_RRBS$gandalf_aggResult(resultType = "matrix", method = "zip")
@@ -211,7 +211,7 @@ gandalf_RRBS$gandalf_aggResult(resultType = "matrix", method = "zip")
 
 ### **Update Workflow**
 
-```         
+```R         
 update_gandalf(gandalf_RRBS)
 ```
 
