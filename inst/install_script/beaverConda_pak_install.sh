@@ -21,9 +21,9 @@ conda create -n trim_galore -c bioconda trim-galore  -y
 conda create -n picard -c bioconda picard -y
 conda install -n base r-ragg -y
 conda install -n base r-tidyverse -y
-conda install cmake -y
-conda install r-xml2 -y
-conda install bioconductor-rhtslib -y
+conda install -n base cmake -y
+conda install -n base r-xml2 -y
+conda install -n base bioconductor-rhtslib -y
 conda install -n base r-magick -y
 conda install -n base r-rJava -y
 conda install -n base r-devtools
