@@ -29,8 +29,21 @@ conda install -n base r-rJava -y
 conda install -n base r-devtools
 conda install -n base -c conda-forge freetype libcurl icu libjpeg-turbo libpng libtiff libxml2 pandoc -y
 conda run -n base R -e "options ('repos' = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/'));
-  install.packages('pak',repos = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/')) ;
-  pak::pkg_install(c('DT','shinyWidgets','shiny','bslib','optparse',
+message('>> Check install status');
+installed <- installed.packages(); installed <- rownames(installed);
+pkg_install  <- function(pkg,installed = installed ){
+  pkg <- pkg[!(pkg %in% installed)]
+  if (length(pkg) != 0){
+    pak::pak_install(pkg,upgrade = F,ask= FALSE, dependencies = NA)
+  }
+};
+message('>> Install pak');
+if (!('pak' %in% installed)){
+  install.packages('pak',
+  repos = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/'))
+  };
+message('>> Install library');
+  pkg_install(pkg = c('DT','shinyWidgets','shiny','bslib','optparse',
          'openxlsx','NOISeq','XML','Repitools',
                          'Rsamtools','rtracklayer','R6','reticulate',
                          'GSVA','graphite','igraph','ggraph','TCGAbiolinks',
@@ -47,15 +60,25 @@ conda run -n base R -e "options ('repos' = c(CRAN ='https://mirrors.tuna.tsinghu
                          'foreach','doMC','Seurat',
                          'dbplyr', 'RColorBrewer',
                          'rjson','mlr3verse',
-                         'limma','BSgenome',
+                         'limma','BSgenome','blastula',
                          'BSgenome.Hsapiens.UCSC.hg19','bsseq'),
-                       upgrade = F,ask= FALSE, dependencies = NA);
-      pak::pkg_install(c('mlr-org/mlr3extralearners@*release'),upgrade = TRUE,ask= FALSE, dependencies = NA);
-      pak::pak('NKI-GCF/XenofilteR');
-      pak::pak('CompEpigen/scMethrix');
-      pak::pak('CompEpigen/methrix');
-      pak::pak('blastula');
-      devtools::install_github('mlr-org/mlr3proba');
-      tinytex::install_tinytex(force = TRUE);
-      tinytex::tlmgr_repo('http://mirrors.tuna.tsinghua.edu.cn/CTAN/');
-      pak::cache_clean()"
+                      installed = installed);
+  if (!('mlr3extralearners' %in% installed)){
+  pak::pkg_install(c('mlr-org/mlr3extralearners@*release'),
+  upgrade = TRUE,ask= FALSE, dependencies = NA)
+  };
+  if (!('XenofilteR' %in% installed)){
+  pak::pak('NKI-GCF/XenofilteR')
+  };
+  if (!('scMethrix' %in% installed)){
+  pak::pak('CompEpigen/scMethrix')
+  };
+  if (!('methrix' %in% installed)){
+  pak::pak('CompEpigen/methrix')
+  };
+   if (!('mlr3proba' %in% installed)){
+ devtools::install_github('mlr-org/mlr3proba')
+  };
+  try(tinytex::install_tinytex(force = TRUE));
+  tinytex::tlmgr_repo('http://mirrors.tuna.tsinghua.edu.cn/CTAN/');
+  pak::cache_clean()"
