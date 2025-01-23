@@ -79,6 +79,4 @@ message('>> Install library');
    if (!('mlr3proba' %in% installed)){
  devtools::install_github('mlr-org/mlr3proba')
   };
-  try(tinytex::install_tinytex(force = TRUE));
-  tinytex::tlmgr_repo('http://mirrors.tuna.tsinghua.edu.cn/CTAN/');
   pak::cache_clean()"
