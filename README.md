@@ -65,8 +65,8 @@ analysis pipelines.
 
 ``` r
 pak::pak("Rhtslib")
-pak::pak('CompEpigen/scMethrix')
 pak::pak('CompEpigen/methrix')
+pak::pak('CompEpigen/scMethrix')
 pak::pak("BiocParallel")
 pak::pak("NKI-GCF/XenofilteR")
 pak::pak("rainoffallingstar/beaverdown2")

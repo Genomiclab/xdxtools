@@ -850,6 +850,10 @@ BeaverGandalf <- R6::R6Class(
           
       }
       message(">> Calculate Adapters ...")
+      if (length(trimSeq1) == 1){
+        trimSeq1 <- c(trimSeq1,"placeholder")
+        trimSeq2 <- c(trimSeq2,"placeholder")
+      }
       self$adapter1 <- trimSeq1
       self$adapter2 <- trimSeq2
       message(">> Done!")
@@ -1069,7 +1073,8 @@ BeaverGandalf <- R6::R6Class(
 #' @param dry_run \code{logical} Whether to perform a dry run without executing the workflow (default: FALSE).
 #' @param partition the partition of resources used by slrum cluster,only works in slrum mode
 #' @param use_sbatch \code{logical} Whether to use sbatch to submit a job or use srun in FALSE
-#'
+#' @param cpus the cpu cores used in the 3 steps, default as 20,40,10
+#' @param mem the mem used in the 3 steps,default as "100G","400G","400G"
 #' @return \code{NULL} (executes the workflow and logs the process).
 #'
 #' @details
@@ -1085,11 +1090,35 @@ BeaverGandalf <- R6::R6Class(
                             snakemake_condaenv = "",
                             dry_run = F,
                             partition = "amd_512",
-                            use_sbatch = F){
-      
-      cpus = c("20","40","10")
-      process = c("40","60","20")
-      mem = c("100G","400G","400G")
+                            use_sbatch = F,
+                            cpus = c("20","40","10"),
+                            mem = c("100G","400G","400G")){
+      message(">> Configuring cpu paramters.")
+      if (length(cpus) > 3){
+        message(">> Too much steps,use the first 3 steps.")
+        cpus <- cpus[1:3]
+      }else if(length(cpus) == 1){
+        message(">> Complimentation of cpu usage plan with default setting.")
+        cpus <- c(cpus,"40","10")
+      }else if (length(cpus) == 2){
+        message(">> Complimentation of cpu usage plan with default setting.")
+        cpus <- c(cpus,"10")
+      }else {
+        message(">> Plan for cpu usage created.")
+      }
+      message(">> Configuring mem paramters.")
+      if (length(mem) > 3){
+        message(">> Too much steps,use the first 3 steps.")
+        mem <- mem[1:3]
+      }else if(length(mem) == 1){
+        message(">> Complimentation of mem usage plan with default setting.")
+        mem <- c(mem,"400G","400G")
+      }else if (length(mem) == 2){
+        message(">> Complimentation of mem usage plan with default setting.")
+        mem <- c(mem,"400G")
+      }else {
+        message(">> Plan for mem usage created.")
+      }
       
       if (self$Mode == "RNASEQ"){
         workflow_idx = "BeaverRNA"
@@ -1794,6 +1823,7 @@ test_that("beaver_rsync works", {
 #'   Defaults to the current working directory (`getwd()`).
 #' @param enigent The detected engine type. Can be one of "k8s", "container", or other values detected by `beaver_engine_detect()`.
 #'   Defaults to the result of `beaver_engine_detect()`.
+#' @param build_env install conda envs in the init of the beaverflow, default as False
 #' 
 #' @return NULL
 #'
@@ -1813,7 +1843,7 @@ test_that("beaver_rsync works", {
 #'
 beaverflow_install <- function(workflow_dir = getwd(),
                                enigent = beaver_engine_detect(),
-                               build_env = T){
+                               build_env = F){
   whoami <- system(command = "whoami",intern = T)
   message(glue::glue(">> Welcome!{whoami}."))
   message(">> Building Beaverflow dir tree")
@@ -1857,7 +1887,7 @@ beaverflow_install <- function(workflow_dir = getwd(),
       message(">> We assume you are using the pre-build docker image :")
       message("1.yup")
       message("2.No")
-      answer <- readline("Input your answer >> ")
+      answer <- readline("Input your answer [1|2] >> ")
       if (answer == "1"){
         type <- "root"
       } else if(answer == "2"){

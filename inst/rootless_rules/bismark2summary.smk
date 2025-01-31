@@ -11,6 +11,6 @@ rule bismarksummary:
   threads:10
   shell:
     """
-    cd {params.rundir} && bismark2summary {params.graft_align} 
+    cd {params.rundir} && conda run -n bismark bismark2summary {params.graft_align} 
     
     """

@@ -516,7 +516,9 @@ A named list containing the configuration parameters written to the YAML file.
   snakemake_condaenv = "",
   dry_run = F,
   partition = "amd_512",
-  use_sbatch = F
+  use_sbatch = F,
+  cpus = c("20", "40", "10"),
+  mem = c("100G", "400G", "400G")
 )}\if{html}{\out{</div>}}
 }
 
@@ -534,6 +536,10 @@ A named list containing the configuration parameters written to the YAML file.
 \item{\code{partition}}{the partition of resources used by slrum cluster,only works in slrum mode}
 
 \item{\code{use_sbatch}}{\code{logical} Whether to use sbatch to submit a job or use srun in FALSE}
+
+\item{\code{cpus}}{the cpu cores used in the 3 steps, default as 20,40,10}
+
+\item{\code{mem}}{the mem used in the 3 steps,default as "100G","400G","400G"}
 }
 \if{html}{\out{</div>}}
 }

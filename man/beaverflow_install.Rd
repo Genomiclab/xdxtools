@@ -7,7 +7,7 @@
 beaverflow_install(
   workflow_dir = getwd(),
   enigent = beaver_engine_detect(),
-  build_env = T
+  build_env = F
 )
 }
 \arguments{
@@ -16,6 +16,8 @@ Defaults to the current working directory (\code{getwd()}).}
 
 \item{enigent}{The detected engine type. Can be one of "k8s", "container", or other values detected by \code{beaver_engine_detect()}.
 Defaults to the result of \code{beaver_engine_detect()}.}
+
+\item{build_env}{install conda envs in the init of the beaverflow, default as False}
 }
 \description{
 This function sets up the Beaverflow workflow environment by creating the necessary directory structure,

@@ -12,6 +12,7 @@ conda install -n multiqc numpy=1.26.4 -y
 conda create -n star -c bioconda star -y
 conda create -n htseq -c bioconda htseq -y
 conda create -n bismark -c bioconda bismark -y
+conda install -n bismark -c bioconda samtools -y
 conda create -n fastqc -c bioconda fastqc  -y
 conda create -n snakemake -c bioconda snakemake  -y
 conda create -n qualimap -c bioconda qualimap  -y
@@ -70,11 +71,11 @@ message('>> Install library');
   if (!('XenofilteR' %in% installed)){
   pak::pak('NKI-GCF/XenofilteR')
   };
+   if (!('methrix' %in% installed)){
+  pak::pak('CompEpigen/methrix')
+  };
   if (!('scMethrix' %in% installed)){
   pak::pak('CompEpigen/scMethrix')
-  };
-  if (!('methrix' %in% installed)){
-  pak::pak('CompEpigen/methrix')
   };
    if (!('mlr3proba' %in% installed)){
  devtools::install_github('mlr-org/mlr3proba')
