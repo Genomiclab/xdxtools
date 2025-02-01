@@ -11,7 +11,7 @@
 #' @param enigent The detected engine type. Can be one of "k8s", "container", or other values detected by `beaver_engine_detect()`.
 #'   Defaults to the result of `beaver_engine_detect()`.
 #' @param build_env install conda envs in the init of the beaverflow, default as False
-#' 
+#' @param build_genome download and compile genome files in the init of the beaverflow, default as False
 #' @return NULL
 #'
 #' @export
@@ -30,7 +30,8 @@
 #'
 beaverflow_install <- function(workflow_dir = getwd(),
                                enigent = beaver_engine_detect(),
-                               build_env = F){
+                               build_env = F,
+                               build_genome = F){
   whoami <- system(command = "whoami",intern = T)
   message(glue::glue(">> Welcome!{whoami}."))
   message(">> Building Beaverflow dir tree")
@@ -151,11 +152,39 @@ beaverflow_install <- function(workflow_dir = getwd(),
       }
     
   }
-  
-  message(">> Fetching Genomic files")
-  message(">>> You need to download pre-build Genomic files through our shared link:https://pan.quark.cn/s/e0908b382183")
+  if (build_genome){
+    message(">> Download Genomic files")
+    human_version <- "none"
+    while (!(human_version %in% c("hg19","hg38"))) {
+      human_version <- readline("Building human genome [hg19|hg38] >> ")
+    }
+    mouse_version <- "none"
+    while (!(mouse_version %in% c("mm10","mm39"))) {
+      mouse_version <- readline("Building mouse genome [mm10|mm39] >> ")
+    }
+    
+    download_human <- glue::glue("wget -P inst/pdx/homo_sapiens/ https://hgdownload.soe.ucsc.edu/goldenPath/{human_version}/bigZips/{human_version}.fa.gz")
+    download_mouse <- glue::glue("wget -P inst/pdx/mouse/ https://hgdownload.soe.ucsc.edu/goldenPath/{mouse_version}/bigZips/{mouse_version}.fa.gz")
+    download_human_gtf <- glue::glue("wget -P inst/rnaseq/homo_sapiens/ https://hgdownload.soe.ucsc.edu/goldenPath/{human_version}/bigZips/genes/{human_version}.ensGene.gtf.gz")
+    fs::dir_create("inst/pdx/homo_sapiens/")
+    fs::dir_create("inst/pdx/mouse/")
+    fs::dir_create("inst/rnaseq/homo_sapiens/")
+    system(command = download_human)
+    system(command = download_mouse)
+    message(">> building Genomic files")
+    system(command = glue::glue("gunzip inst/pdx/homo_sapiens/{human_version}.fa.gz"))
+    system(command = glue::glue("gunzip inst/rnaseq/homo_sapiens/{human_version}.ensGene.gtf.gz"))
+    build_script <- system.file("install_script/build_genome.sh",
+                                package = "beaverdown2")
+    build_genome_command <- glue::glue("sed -i 's/hg38/{human_version}/g' {build_script} && chmod +x {build_script} && sbatch {build_script}")
+    system(command = build_genome_command)
+  }else{
+    message(">> Fetching Genomic files")
+    message(">>> You need to download pre-build Genomic files through our shared link:https://pan.quark.cn/s/e0908b382183")
   message(">>> please place these files under the dir : inst/")
   message(">>> or a self-build of bismark/STAR-required refer Genome is suggested.")
+  }
+  
   message(">>> Congratulations! we hope to share you with the enjoyment of the R6-OOP BeaverGandalf,and,")
   message(glue::glue(">>> You're a very fine person, Dear {whoami}. 
                      And I'm very fond of you. 

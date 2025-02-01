@@ -891,7 +891,7 @@ BeaverGandalf <- R6::R6Class(
             "library(beaverdown2)",
             "library(dplyr)",
             glue::glue("BeaverGandalf <- readRDS('{self$logsummary}/workflow.RDS')"),
-            "gandalf_RRBS$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F)"
+            "BeaverGandalf$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F,cpus = c('40','40','40'),mem = c('400G','400G','400G'),partition = '{partition}')"
           )
           rfile <- paste0(self$logsummary,
                                 "/workflow.R")
@@ -899,7 +899,7 @@ BeaverGandalf <- R6::R6Class(
                      rfile)
           out <- paste0(self$logsummary,"/beaverflow.out")
           err <- paste0(self$logsummary,"/beaverflow.err")
-          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=2 --mem=32G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
+          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=40 --mem=400G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
           # 运行 sbatch 提交
           message(">> Submitting Jobs by sbatch")
           system(command = sbatch_command)

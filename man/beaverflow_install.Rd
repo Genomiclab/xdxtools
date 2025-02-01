@@ -7,7 +7,8 @@
 beaverflow_install(
   workflow_dir = getwd(),
   enigent = beaver_engine_detect(),
-  build_env = F
+  build_env = F,
+  build_genome = F
 )
 }
 \arguments{
@@ -18,6 +19,8 @@ Defaults to the current working directory (\code{getwd()}).}
 Defaults to the result of \code{beaver_engine_detect()}.}
 
 \item{build_env}{install conda envs in the init of the beaverflow, default as False}
+
+\item{build_genome}{download and compile genome files in the init of the beaverflow, default as False}
 }
 \description{
 This function sets up the Beaverflow workflow environment by creating the necessary directory structure,
