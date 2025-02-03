@@ -4,6 +4,8 @@
 # Beaverdown2: A Bioinformatics Workflow Management Package
 
 [中文](https://github.com/rainoffallingstar/beaverdown2/blob/master/README_zh.md)
+｜
+[NotebookLLM](https://notebooklm.google.com/notebook/67b24f6c-2f7c-40b4-9019-c68f6b391948/audio)
 
 ## Introduction
 

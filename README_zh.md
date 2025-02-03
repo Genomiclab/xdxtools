@@ -3,6 +3,8 @@
 
 # Beaverdown2: A Bioinformatics Workflow Management Package
 
+[NotebookLLM](https://notebooklm.google.com/notebook/67b24f6c-2f7c-40b4-9019-c68f6b391948/audio)
+
 ## 简介
 
 `Beaverdown2` 是一个基于 R

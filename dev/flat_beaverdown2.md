@@ -229,8 +229,14 @@ test_that("use_server_pdata works", {
 #'
 #' @export
 beaver_engine_detect <- function(){
-  k8s_try <- try(system(command = "kubectl version",intern = T))
-  srun_try <- try(system(command = "srun -V",intern = T))
+  k8s_try <- try(system(command = "kubectl version",
+                        intern = T,
+                        ignore.stdout = TRUE, 
+                        ignore.stderr = TRUE))
+  srun_try <- try(system(command = "srun -V",
+                         intern = T,
+                         ignore.stdout = TRUE, 
+                         ignore.stderr = TRUE))
   if (class(k8s_try) != "try-error"){
     return("k8s")
   }else if (class(srun_try) != "try-error"){
@@ -384,9 +390,6 @@ test_that("file_agg works", {
 #' @field species2  species2
 #' @field host host 
 #' @field cgGR_gz cgGR_gz
-#' @field CGIRData CGIRData
-#' @field CCGG CCGG 
-#' @field hg19_genomeFile hg19_genomeFile
 #' @field qcDir_before qcDir_before
 #' @field qcDir_after qcDir_after
 #' @field bsmapDir_bamtmp bsmapDir_bamtmp
@@ -400,15 +403,13 @@ test_that("file_agg works", {
 #' @field PDX_pipeline A logical indicating whether PDX mode is enabled.
 #' @field fastqDir The directory for FASTQ files.
 #' @field adapter1 Adapter sequences for trimming.
-#' @field adapter2 Adapter sequences for trimming.
-#' @field cgGR Paths to reference data files (e.g., CpG sites, CGI).
+#' @field adapter2 Adapter sequences for trimming
 #' @field CGI Paths to reference data files (e.g., CpG sites, CGI).
-#' @field CpG Paths to reference data files (e.g., CpG sites, CGI).
 #' @field genomeFile Paths to genome files.
 #' @field gnome_fasta Paths to genome files.
 #' @field rnaseq_gtf Paths to RNAseq reference files.
 #' @field rnaseq_ref Paths to RNAseq reference files.
-#' @field workflow_endpoint A named logical vector indicating the workflow endpoint.
+#' @field workflow_endpoint workflow endpoint.
 #' @field chrs A vector of chromosome names.
 #' @field read1_5 Read trimming parameters.
 #' @field read1_3 Read trimming parameters.
@@ -432,7 +433,7 @@ test_that("file_agg works", {
 #' @field SID_log The directory for log files.
 #' @field trimDir Directories for trimming, BSMAP, and methylation calling.
 #' @field bsmapDir Directories for trimming, BSMAP, and methylation calling.
-#' @field outDir_mCall Directories for trimming, BSMAP, and methylation calling.
+#' @field outDir_mCall Directories for methylation calling.
 #' @field ourDirUmx Directories for UMX and Qualimap results.
 #' @field outdir_qualimap Directories for UMX and Qualimap results.
 #' @field outDir_mhap Directories for M-HAP and RData files.
@@ -473,18 +474,19 @@ BeaverGandalf <- R6::R6Class(
     read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10,
     pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
     userid = NULL,fixed = NULL,yaml_file = NULL,
-    cgGR = "inst/hg19/hg19_CpG_sites.RData",
-    cgGR_gz = NULL,
-    CGI = "inst/hg19/hg19_cpgIsland.bed",gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
-                                                          "inst/pdx/mouse/GRCm38.fasta"),
+    #cgGR = "inst/hg19/hg19_CpG_sites.RData",
+    cgGR_gz = "inst/hg19/hg19_CpG_sites.gz",
+    CGI = "inst/hg19/hg19_cpgIsland.bed",
+    gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
+                    "inst/pdx/mouse/GRCm38.fasta"),
     genomeFile = c("inst/pdx/homo_sapiens/",
                     "inst/pdx/mouse/"),
     rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
     rnaseq_ref = "inst/rnaseq/homo_sapiens/",
-    CGIRData = "inst/hg19/hg19_CGI_GR.RData",
-    CCGG = "inst/hg19/CCGG.RData",
-    CpG  = "inst/hg19/hg19_CpG_sites.RData",
-    hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
+    #CGIRData = "inst/hg19/hg19_CGI_GR.RData",
+    #CCGG = "inst/hg19/CCGG.RData",
+    #CpG  = "inst/hg19/hg19_CpG_sites.RData",
+    #hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
     workflowDir   = "/workflow",
     analysisDir = "/analysis",
     selfconfig = "/config",
@@ -542,17 +544,12 @@ BeaverGandalf <- R6::R6Class(
 #' @param userid \code{character} or \code{NULL} Unique user ID (default: NULL).
 #' @param fixed \code{character} or \code{NULL} Fixed parameters string (default: NULL).
 #' @param yaml_file \code{character} or \code{NULL} Path to the YAML configuration file (default: NULL).
-#' @param cgGR \code{character} Path to CpG sites RData file (default: "inst/hg19/hg19_CpG_sites.RData").
 #' @param cgGR_gz \code{character} or \code{NULL} Gzipped version of cgGR (default: NULL).
 #' @param CGI \code{character} Path to CpG islands BED file (default: "inst/hg19/hg19_cpgIsland.bed").
 #' @param gnome_fasta \code{character} or \code{vector} Path(s) to genome FASTA files (default: hg19 and GRCm38).
 #' @param genomeFile \code{character} or \code{vector} Path(s) to genome files (default: hg19 and GRCm38).
 #' @param rnaseq_gtf \code{character} Path to RNAseq GTF file (default: "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf").
 #' @param rnaseq_ref \code{character} Path to RNAseq reference directory (default: "inst/rnaseq/homo_sapiens/").
-#' @param CGIRData \code{character} Path to CGI RData file (default: "inst/hg19/hg19_CGI_GR.RData").
-#' @param CCGG \code{character} Path to CCGG RData file (default: "inst/hg19/CCGG.RData").
-#' @param CpG \code{character} Path to CpG sites RData file (default: "inst/hg19/hg19_CpG_sites.RData").
-#' @param hg19_genomeFile \code{character} Path to hg19 genome file (default: "inst/hg19/ucsc_hg19-20180821.fa").
 #' @param fastqDir \code{character} Directory for FASTQ files (default: "/data").
 #' @param workflowDir \code{character} Directory for workflow files (default: "/workflow").
 #' @param analysisDir \code{character} Directory for analysis results (default: "/analysis").
@@ -597,18 +594,15 @@ BeaverGandalf <- R6::R6Class(
                           pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
                           userid = NULL,fixed = NULL,
                           yaml_file = NULL,
-                          cgGR = "inst/hg19/hg19_CpG_sites.RData",
-                          cgGR_gz = NULL,
-                          CGI = "inst/hg19/hg19_cpgIsland.bed",gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
-                                                                               "inst/pdx/mouse/GRCm38.fasta"),
+                          #cgGR = "inst/hg19/hg19_CpG_sites.RData",
+                          cgGR_gz = "inst/hg19/hg19_CpG_sites.gz",
+                          CGI = "inst/hg19/hg19_cpgIsland.bed",
+                          gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta",
+                                          "inst/pdx/mouse/GRCm38.fasta"),
                           genomeFile = c("inst/pdx/homo_sapiens/",
                                          "inst/pdx/mouse/"),
                           rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
                           rnaseq_ref = "inst/rnaseq/homo_sapiens/",
-                          CGIRData = "inst/hg19/hg19_CGI_GR.RData",
-                          CCGG = "inst/hg19/CCGG.RData",
-                          CpG  = "inst/hg19/hg19_CpG_sites.RData",
-                          hg19_genomeFile = "inst/hg19/ucsc_hg19-20180821.fa",
                           fastqDir = "/data",
                           workflowDir   = "/workflow",
                           analysisDir = "/analysis",
@@ -665,17 +659,17 @@ BeaverGandalf <- R6::R6Class(
       self$pdata = pdata
       self$uploadfile = uploadfile
       self$genomeFile = genomeFile
-      self$cgGR = cgGR
-      self$cgGR_gz = stringr::str_replace(cgGR,"RData","gz")
+      #self$cgGR = cgGR
+      self$cgGR_gz = cgGR_gz
       self$CGI = CGI
       self$gnome_fasta = gnome_fasta
       self$genomeFile = genomeFile
       self$rnaseq_gtf = rnaseq_gtf
       self$rnaseq_ref = rnaseq_ref
-      self$CGIRData = CGIRData
-      self$CCGG = CCGG
-      self$CpG  = CpG
-      self$hg19_genomeFile = hg19_genomeFile
+      #self$CGIRData = CGIRData
+      #self$CCGG = CCGG
+      #self$CpG  = CpG
+      #self$hg19_genomeFile = hg19_genomeFile
       # 一些需要计算的参数
       if (is.null(species)){
         self$species <- c(species1,species2)
@@ -856,6 +850,10 @@ BeaverGandalf <- R6::R6Class(
           
       }
       message(">> Calculate Adapters ...")
+      if (length(trimSeq1) == 1){
+        trimSeq1 <- c(trimSeq1,"placeholder")
+        trimSeq2 <- c(trimSeq2,"placeholder")
+      }
       self$adapter1 <- trimSeq1
       self$adapter2 <- trimSeq2
       message(">> Done!")
@@ -1003,13 +1001,13 @@ BeaverGandalf <- R6::R6Class(
         T2  = self$T2,
         genomeFile = self$genomeFile,
         gnome_fasta = self$gnome_fasta,
-        hg19_genomeFile = self$hg19_genomeFile,
-        cgGR = self$cgGR,
+        #hg19_genomeFile = self$hg19_genomeFile,
+        #cgGR = self$cgGR,
         cgGR_gz = self$cgGR_gz,
         CGI = self$CGI,
-        CGIRData = self$CGIRData,
-        CCGG = self$CCGG,
-        CpG  = self$CpG,
+        #CGIRData = self$CGIRData,
+        #CCGG = self$CCGG,
+        #CpG  = self$CpG,
         workDir = paste0(self$userspace,"/",self$userid),
         workflowDir = self$workflowDir,
         analysisDir = self$analysisDir,
@@ -1075,7 +1073,8 @@ BeaverGandalf <- R6::R6Class(
 #' @param dry_run \code{logical} Whether to perform a dry run without executing the workflow (default: FALSE).
 #' @param partition the partition of resources used by slrum cluster,only works in slrum mode
 #' @param use_sbatch \code{logical} Whether to use sbatch to submit a job or use srun in FALSE
-#'
+#' @param cpus the cpu cores used in the 3 steps, default as 20,40,10
+#' @param mem the mem used in the 3 steps,default as "100G","400G","400G"
 #' @return \code{NULL} (executes the workflow and logs the process).
 #'
 #' @details
@@ -1091,11 +1090,35 @@ BeaverGandalf <- R6::R6Class(
                             snakemake_condaenv = "",
                             dry_run = F,
                             partition = "amd_512",
-                            use_sbatch = F){
-      
-      cpus = c("20","40","10")
-      process = c("40","60","20")
-      mem = c("100G","400G","400G")
+                            use_sbatch = F,
+                            cpus = c("20","40","10"),
+                            mem = c("100G","400G","400G")){
+      message(">> Configuring cpu paramters.")
+      if (length(cpus) > 3){
+        message(">> Too much steps,use the first 3 steps.")
+        cpus <- cpus[1:3]
+      }else if(length(cpus) == 1){
+        message(">> Complimentation of cpu usage plan with default setting.")
+        cpus <- c(cpus,"40","10")
+      }else if (length(cpus) == 2){
+        message(">> Complimentation of cpu usage plan with default setting.")
+        cpus <- c(cpus,"10")
+      }else {
+        message(">> Plan for cpu usage created.")
+      }
+      message(">> Configuring mem paramters.")
+      if (length(mem) > 3){
+        message(">> Too much steps,use the first 3 steps.")
+        mem <- mem[1:3]
+      }else if(length(mem) == 1){
+        message(">> Complimentation of mem usage plan with default setting.")
+        mem <- c(mem,"400G","400G")
+      }else if (length(mem) == 2){
+        message(">> Complimentation of mem usage plan with default setting.")
+        mem <- c(mem,"400G")
+      }else {
+        message(">> Plan for mem usage created.")
+      }
       
       if (self$Mode == "RNASEQ"){
         workflow_idx = "BeaverRNA"
@@ -1245,7 +1268,7 @@ BeaverGandalf <- R6::R6Class(
             "library(beaverdown2)",
             "library(dplyr)",
             glue::glue("BeaverGandalf <- readRDS('{self$logsummary}/workflow.RDS')"),
-            "gandalf_RRBS$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F)"
+            "BeaverGandalf$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F,cpus = c('40','40','40'),mem = c('400G','400G','400G'),partition = '{partition}')"
           )
           rfile <- paste0(self$logsummary,
                                 "/workflow.R")
@@ -1253,7 +1276,7 @@ BeaverGandalf <- R6::R6Class(
                      rfile)
           out <- paste0(self$logsummary,"/beaverflow.out")
           err <- paste0(self$logsummary,"/beaverflow.err")
-          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=2 --mem=32G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
+          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=40 --mem=400G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
           # 运行 sbatch 提交
           message(">> Submitting Jobs by sbatch")
           system(command = sbatch_command)
@@ -1800,6 +1823,8 @@ test_that("beaver_rsync works", {
 #'   Defaults to the current working directory (`getwd()`).
 #' @param enigent The detected engine type. Can be one of "k8s", "container", or other values detected by `beaver_engine_detect()`.
 #'   Defaults to the result of `beaver_engine_detect()`.
+#' @param build_env install conda envs in the init of the beaverflow, default as False
+#' @param build_genome download and compile genome files in the init of the beaverflow, default as False
 #' @return NULL
 #'
 #' @export
@@ -1818,7 +1843,8 @@ test_that("beaver_rsync works", {
 #'
 beaverflow_install <- function(workflow_dir = getwd(),
                                enigent = beaver_engine_detect(),
-                               build_env = T){
+                               build_env = F,
+                               build_genome = F){
   whoami <- system(command = "whoami",intern = T)
   message(glue::glue(">> Welcome!{whoami}."))
   message(">> Building Beaverflow dir tree")
@@ -1862,7 +1888,7 @@ beaverflow_install <- function(workflow_dir = getwd(),
       message(">> We assume you are using the pre-build docker image :")
       message("1.yup")
       message("2.No")
-      answer <- readline("Input your answer >> ")
+      answer <- readline("Input your answer [1|2] >> ")
       if (answer == "1"){
         type <- "root"
       } else if(answer == "2"){
@@ -1891,87 +1917,87 @@ beaverflow_install <- function(workflow_dir = getwd(),
     # add build_env param here
     
     message(">> Check miniconda ...")
-    conda_try <- try(system(command = "conda env list",intern = T))
+    
+    condaType <- readline("What is your TYPE of conda installed ? [miniconda3|micromamba] >> ")
+    
+    if (grepl("mamba",condaType)){
+      conda_call <- "alias conda=mamba && conda"
+      message(">> Warning,Please alias mamba to conda in .bashrc to avoid errors in using beaverflow.")
+    }else if(grepl("conda",condaType)){
+      conda_call <- "conda"
+    }else{
+      stop(">> please input a correct conda version")
+    }
+  
+    conda_try <- try(system(command = glue::glue("export PATH={Sys.getenv('HOME')}/{condaType}/bin:$PATH && {conda_call} env list"),
+                            intern = T))
     
     if (class(conda_try) == "try-error"){
-      message(">> Sad!Conda is required,Please the following commands to install miniconda firstly:")
-      message(">> curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh | bash")
-      stop(">> Exit.")
+      message(">> Sad!Conda is required and 'PATH=$HOME/path_to_conda/bin:$PATH' should be added to .bashrc")
+      answer2 <- "unknow"
+      while (answer2 == "unknow") {
+        answer2 <- readline("Install miniconda and set PATH for me >> [yes|no]")
+        if (!(answer2 %in% c("yes","no"))) answer2 <- "unknow"
+      }
+      if (answer2 == "yes"){
+        conda_install <- system.file("install_script/miniconda_install.sh",
+                                    package = "beaverdown2")
+        conda_script <- glue::glue("chmod +x {conda_install } && bash {conda_install } ")
+        system(command = conda_script )
+      }else{
+        stop(">> Exit.")
+      }
+      
     }else{
       message(">> Good News! you seems to have a conda version READY to be used. ")
     }
-      command <- glue::glue("conda config --add channels bioconda &&\
-    conda config --add channels conda-forge &&\
-    conda config --set channel_priority strict &&\
-    conda create -n py27 python=2.7 -y &&\
-    conda create -n pyfastx -c bioconda pyfastx -y &&\
-    conda create -n multiqc  -c bioconda multiqc -y &&\
-    conda install -n base r-base -y &&\
-    conda install -n multiqc python=3.12.3 -y &&\
-    conda install -n multiqc numpy=1.26.4 -y &&\
-    conda create -n star -c bioconda star -y &&\
-    conda create -n htseq -c bioconda htseq -y &&\
-    conda create -n bismark -c bioconda bismark -y &&\
-    conda create -n fastqc -c bioconda fastqc  -y &&\
-    conda create -n snakemake -c bioconda snakemake  -y &&\
-    conda create -n qualimap -c bioconda qualimap  -y &&\
-    conda create -n seqkit -c bioconda seqkit  -y &&\
-    conda create -n seqtk -c bioconda seqtk  -y &&\
-    conda create -n trim_galore -c bioconda trim-galore  -y &&\
-    conda create -n picard -c bioconda picard -y &&\
-    conda install -n base r-ragg -y &&\
-    conda install -n base r-tidyverse -y &&\
-    conda install cmake -y &&\
-    conda install r-xml2 -y &&\
-    conda install bioconductor-rhtslib -y &&\
-    conda install -n base r-magick -y &&\
-    conda install -n base r-rJava -y &&\
-    conda install -n base r-devtools &&\
-    conda install -n base -c conda-forge freetype libcurl icu libjpeg-turbo libpng libtiff libxml2 pandoc -y &&\
-    conda install -n base R -e 'options ('repos' = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/'));
-      install.packages('pak',repos = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/')) ;
-      pak::pkg_install(c('DT','shinyWidgets','shiny','bslib','optparse',
-                         'openxlsx','NOISeq','XML','Repitools',
-                         'Rsamtools','rtracklayer','R6','reticulate', 
-                         'GSVA','graphite','igraph','ggraph','TCGAbiolinks',
-                         'SummarizedExperiment','doParallel','yaml','tinytex',
-                         'KEGGgraph', 'plotly',
-                         'pROC','sva','glue','fs',
-                         'png','reshape2',
-                         'readxl','sampling',
-                         'umap',
-                         'gridExtra','ggpubr',
-                         'GenomicRanges','data.table',
-                         'clusterProfiler','org.Hs.eg.db',
-                         'msigdbr','xlsx','KEGGREST','GenomicDataCommons',
-                         'foreach','doMC','Seurat', 
-                         'dbplyr', 'RColorBrewer',
-                         'rjson','mlr3verse',
-                         'limma','BSgenome',
-                         'BSgenome.Hsapiens.UCSC.hg19','bsseq'),
-                       upgrade = F,ask= FALSE, dependencies = NA);
-      pak::pkg_install(c('mlr-org/mlr3extralearners@*release'),upgrade = TRUE,ask= FALSE, dependencies = NA);
-      pak::pak('NKI-GCF/XenofilteR');
-      pak::pak('CompEpigen/scMethrix');
-      pak::pak('CompEpigen/methrix');
-      pak::pak('blastula');
-      devtools::install_github('mlr-org/mlr3proba');
-      tinytex::install_tinytex(force = TRUE);
-      tinytex::tlmgr_repo('http://mirrors.tuna.tsinghua.edu.cn/CTAN/');
-      pak::cache_clean()'")
+      command_script <- system.file("install_script/beaverConda_pak_install.sh",
+                                    package = "beaverdown2")
+      
+      run_script <- glue::glue("export PATH={Sys.getenv('HOME')}/{condaType}/bin:$PATH && chmod +x {command_script} && bash {command_script} ")
+      
+      if (conda_call != "conda") run_script <- paste("alias conda=mamba &&",                                        
+                                                     run_script)
       
       if (build_env){
         message(">> Installing Conda envs and R packages ...")
-        system(command = command)
+        system(command = run_script)
       }
-      
     
   }
-  
-  message(">> Fetching Genomic files")
-  message(">>> You need to download pre-build Genomic files through our shared link:https://pan.quark.cn/s/e0908b382183")
+  if (build_genome){
+    message(">> Download Genomic files")
+    human_version <- "none"
+    while (!(human_version %in% c("hg19","hg38"))) {
+      human_version <- readline("Building human genome [hg19|hg38] >> ")
+    }
+    mouse_version <- "none"
+    while (!(mouse_version %in% c("mm10","mm39"))) {
+      mouse_version <- readline("Building mouse genome [mm10|mm39] >> ")
+    }
+    
+    download_human <- glue::glue("wget -P inst/pdx/homo_sapiens/ https://hgdownload.soe.ucsc.edu/goldenPath/{human_version}/bigZips/{human_version}.fa.gz")
+    download_mouse <- glue::glue("wget -P inst/pdx/mouse/ https://hgdownload.soe.ucsc.edu/goldenPath/{mouse_version}/bigZips/{mouse_version}.fa.gz")
+    download_human_gtf <- glue::glue("wget -P inst/rnaseq/homo_sapiens/ https://hgdownload.soe.ucsc.edu/goldenPath/{human_version}/bigZips/genes/{human_version}.ensGene.gtf.gz")
+    fs::dir_create("inst/pdx/homo_sapiens/")
+    fs::dir_create("inst/pdx/mouse/")
+    fs::dir_create("inst/rnaseq/homo_sapiens/")
+    system(command = download_human)
+    system(command = download_mouse)
+    message(">> building Genomic files")
+    system(command = glue::glue("gunzip inst/pdx/homo_sapiens/{human_version}.fa.gz"))
+    system(command = glue::glue("gunzip inst/rnaseq/homo_sapiens/{human_version}.ensGene.gtf.gz"))
+    build_script <- system.file("install_script/build_genome.sh",
+                                package = "beaverdown2")
+    build_genome_command <- glue::glue("sed -i 's/hg38/{human_version}/g' {build_script} && chmod +x {build_script} && sbatch {build_script}")
+    system(command = build_genome_command)
+  }else{
+    message(">> Fetching Genomic files")
+    message(">>> You need to download pre-build Genomic files through our shared link:https://pan.quark.cn/s/e0908b382183")
   message(">>> please place these files under the dir : inst/")
   message(">>> or a self-build of bismark/STAR-required refer Genome is suggested.")
+  }
+  
   message(">>> Congratulations! we hope to share you with the enjoyment of the R6-OOP BeaverGandalf,and,")
   message(glue::glue(">>> You're a very fine person, Dear {whoami}. 
                      And I'm very fond of you. 
@@ -1991,6 +2017,385 @@ test_that("beaverflow_install works", {
   expect_true(inherits(beaverflow_install, "function")) 
 })
 ```
+
+# beaver_methrix2sc
+    
+```{r function-beaver_methrix2sc}
+#' Convert Methrix object to scMethrix object with optional imputation
+#'
+#' This function converts a Methrix object to an scMethrix object, optionally performs binning and imputation, and saves the results in HDF5 format.
+#' 
+#' The function first checks if the HDF5 file already exists in the specified directory. If not, it converts the Methrix object to an scMethrix object.
+#' It then performs binning with a specified bin size (default 100,000 bp) and optionally performs imputation using the k-Nearest Neighbors (kNN) method.
+#' The results are saved in HDF5 format for efficient storage and retrieval.
+#' 
+#' @param mdsc_meth A Methrix object containing methylation data.
+#' @param impute Logical. Whether to perform imputation on the data. Default is TRUE.
+#' @param h5dir Character. The directory where the HDF5 files will be saved. Default is "h5dir".
+#' 
+#' @return An scMethrix object containing the converted methylation data, optionally binned and imputed.
+#' 
+#' 
+#' @export
+beaver_methrix2sc <- function(mdsc_meth,
+                              impute = T,
+                              h5dir = "h5dir"){
+  if (!file.exists(paste0(h5dir,"/assays.h5"))){
+    ref_locis <- ref_locis <- mdsc_meth@elementMetadata@listData 
+    sse <- SingleCellExperiment::SingleCellExperiment(
+      assays = list(
+        score = methrix::get_matrix(mdsc_meth, type = "M"),
+        counts = methrix::get_matrix(mdsc_meth, type = "C")
+      ),
+      colData = colData(mdsc_meth) %>% as.data.frame(),
+      rowRanges = GRanges(
+        seqnames = ref_locis$chr,
+        ranges = IRanges(start = ref_locis$start, end = ref_locis$start +1),
+        strand = ref_locis$strand
+      ),
+      metadata = list(
+        genome = mdsc_meth@metadata$genome,
+        chrom_size = mdsc_meth@metadata$chrom_sizes,
+        is_h5 = mdsc_meth@metadata$is_h5
+      )
+    )
+    sse <- scMethrix:::scMethrix(sse)
+    message(">> Convert Methrix to scMethrix done!")
+    sse <- scMethrix::convert_scMethrix(scm = sse,
+                                        h5_dir = h5dir)
+    message(">> Convert Methrix to scMethrix with H5 format done!")
+  }else{
+    sse <- scMethrix::load_HDF5_scMethrix(dir = h5dir)
+  }
+  
+  if (!file.exists(paste0(h5dir,"_bins/assays.h5"))){
+    message(">> Calculate Genome bins")
+    sse <- scMethrix::bin_scMethrix(sse, 
+                                    h5_dir = paste0(h5dir,"_bins"),
+                                    bin_size = 100000, 
+                                    bin_by = "bp",
+                                    n_threads = 40,
+                                    replace = T)
+    message(">> bins operation done!")
+  }else{
+    sse <- scMethrix::load_HDF5_scMethrix(dir = paste0(h5dir,"_bins"))
+  }
+  
+  
+  if (impute){
+    if (!file.exists(paste0(h5dir,"_impute/assays.h5"))){
+      message(">> Start imputation")
+      sse <- scMethrix::impute_regions(sse, 
+                                     assay = "score", 
+                                     new_assay = "impute", 
+                                     type = "kNN", 
+                                     k = 10,
+                                     n_threads = 40)
+    scMethrix::save_HDF5_scMethrix(scm = sse,
+                                 h5_dir = paste0(h5dir,"_impute"),
+                                 replace=TRUE)
+    }else{
+      sse <- scMethrix::load_HDF5_scMethrix(dir = paste0(h5dir,"_impute"))
+    }
+    
+  }
+  return(sse)
+}
+```
+  
+```{r example-beaver_methrix2sc}
+
+```
+  
+```{r tests-beaver_methrix2sc}
+test_that("beaver_methrix2sc works", {
+  expect_true(inherits(beaver_methrix2sc, "function")) 
+})
+```
+  
+# beaver_enrichr
+    
+```{r function-beaver_enrichr}
+#' Perform EnrichR analysis using ggetrs and visualize results
+#'
+#' This function performs gene set enrichment analysis using the EnrichR API via the `ggetrs` Rust tool.
+#' It queries the specified pathway database, filters results by p-value, and optionally plots the top enriched pathways.
+#' The results are saved in a YAML file and a PDF plot (if requested).
+#'
+#' @param pathwaydb Character. The name of the pathway database to use (e.g., "KEGG_2021_Human"). Default is "KEGG_2021_Human".
+#' @param genes Character vector. The list of gene symbols to be analyzed.
+#' @param output Character. The directory or file path to save the enrichment results. If NULL, a default directory "enrichr" will be created. Default is NULL.
+#' @param filter_p Numeric. The p-value threshold for filtering significant pathways. Default is 0.05.
+#' @param plot Logical. Whether to generate a dot plot of the top enriched pathways. Default is TRUE.
+#' @param top Integer. The number of top pathways to display in the plot. Default is 20.
+#'
+#' @return A data frame containing the filtered enrichment results, including pathway names, p-values, and overlapping genes.
+#'
+#' @details
+#' This function requires the `ggetrs` Rust tool to be installed and accessible via the `cargo` binary.
+#' The function will stop if `ggetrs` is not found. The results are saved in a YAML file and optionally plotted using `ggpubr`.
+#'
+#' @export
+beaver_enrichr <- function(pathwaydb = "KEGG_2021_Human",
+                           genes,
+                           output = NULL,
+                           filter_p = 0.05,
+                           plot = T,
+                           top = 20){
+  #/home/yanhuazheng/.cargo/bin/ggetrs enrichr enrichr -l ontology AP2S1 NSD1 RFX3 > enrichresult.yaml
+  home <- Sys.getenv("HOME")
+  ggetrs <- glue::glue("{home}/.cargo/bin/ggetrs")
+  if (!grepl("/.cargo/",ggetrs)){
+    stop(">> Rust and cargo is not installed, install rustup first.")
+  }
+  if (!grepl("ggetrs",ggetrs)){
+    stop(">> ggetrs is not install, install it by cargo install ggetrs")
+  }
+  if (is.null(output)){
+    output <- glue::glue("enrichr")
+    fs::dir_create(output)
+    output <- glue::glue("{output}/enrichr.yaml")
+  }else{
+    fs::dir_create(output)
+    output <- glue::glue("{output}/enrichr.yaml")
+  }
+  genes <- paste(genes,collapse = " ")
+  enrichr_command <- glue::glue("{ggetrs} enrichr enrichr -l {pathwaydb} {genes} > {output}")
+  #print(enrichr_command)
+  message(glue::glue(">> Quarying EnrichR in {pathwaydb}"))
+  message(glue::glue(">> Quarying EnrichR for genes: {genes}"))
+  system(command = enrichr_command)
+  message(">> Done! convert results...")
+  enrichr_list <- yaml::read_yaml(output)
+  enrichr_list <- enrichr_list[[1]]
+  for (i in 1:length(enrichr_list)){
+    enrichr_list[[i]] <- as.data.frame(enrichr_list[[i]])
+  }
+  enrichr_tbl <- data.table::rbindlist(enrichr_list) %>% 
+    as.data.frame() %>% 
+    dplyr::filter(pvalue < filter_p)
+  npathway <- unique(enrichr_tbl$term_name) %>% 
+    length()
+  message(glue::glue(">> Filter pvalues < {filter_p}, {npathway} sig pathways found."))
+  
+  if (npathway > 0){
+    message(">> Reshape enrichr_tbl")
+    reshape_enrichr_tbl <- enrichr_tbl %>% 
+      dplyr::distinct(term_name,.keep_all = T)
+    overlap_genes <- enrichr_tbl$overlapping_genes
+    names(overlap_genes) <- enrichr_tbl$term_name
+    for (i in 1:nrow(reshape_enrichr_tbl)){
+      genes <- overlap_genes[names(overlap_genes) %in% reshape_enrichr_tbl$term_name[i]]
+      genes <- paste0(genes,collapse = ",")
+      reshape_enrichr_tbl$overlapping_genes[i] <- genes
+    }
+    if (plot){
+      message(">> Plotting ...")
+      p <- reshape_enrichr_tbl %>% 
+        dplyr::mutate(direction = "plot") %>% 
+        {
+          .[1:top,]
+        } %>% 
+        dplyr::filter(!is.na(term_name)) %>% 
+      ggpubr::ggdotchart(.,  rotate = TRUE,
+                         x = "term_name", y = "combined_score",
+                         color = "direction",                                # Color by groups
+                         palette = c("#00AFBB", "#E7B800", "#FC4E07"), # Custom color palette
+                         sorting = "ascending",                       # Sort value in descending order
+                         add = "segments",                             # Add segments from y = 0 to dots
+                         add.params = list(color = "lightgray", size = 2), # Change segment color and size
+                         group = "direction",                                # Order by groups
+                         dot.size = 10,                                 # Large dot size
+                         label = round(.[["combined_score"]],1),                        # Add mpg values as dot labels
+                         font.label = list(color = "white", size = 9, 
+                                           vjust = 0.5),               # Adjust label parameters
+                         ggtheme = theme_pubr()                        # ggplot2 theme
+      )+
+        geom_hline(yintercept = 0, linetype = 2, color = "lightgray")
+      print(p)
+      message(">> Save Plot")
+      ggsave(filename = stringr::str_replace(output,".yaml","_plot.pdf"),
+             plot = p,
+             width = 6.69 * 2,
+             height = 4.61* 1.5 )
+    }
+    return(reshape_enrichr_tbl)
+  }else{
+    return(enrichr_tbl)
+  }
+}
+```
+  
+```{r example-beaver_enrichr}
+
+```
+  
+```{r tests-beaver_enrichr}
+test_that("beaver_enrichr works", {
+  expect_true(inherits(beaver_enrichr, "function")) 
+})
+```
+  
+  
+# conflict_network_analysis
+    
+```{r function-conflict_network_analysis}
+#' Perform Conflict Network Analysis for Pathway-Specific Methylation
+#'
+#' This function analyzes the conflict between hyper- and hypo-methylated genes within a specified pathway,
+#' constructs a gene network based on the pathway's edge list, and visualizes the network with node annotations.
+#'
+#' The function performs the following steps:
+#' 1. Identifies hyper- and hypo-methylated genes from the input data frame.
+#' 2. Filters genes based on the specified pathway.
+#' 3. Maps genes to their Entrez IDs and annotates them with methylation direction (hyper, hypo, or bidirectional).
+#' 4. Constructs a subgraph of the pathway's gene network using the filtered genes.
+#' 5. Visualizes the network with nodes colored by methylation direction and labeled with gene symbols.
+#'
+#' @param df Data frame. The input data frame containing methylation results.
+#'           Expected columns include "Term" (or "term_name") and "Genes" (or "overlapping_genes").
+#' @param pathway Character vector. The pathway term(s) to filter the genes.
+#' @param edgelist Data frame. The edge list of the pathway's gene network.
+#'                 Expected columns include "from" and "to" for gene interactions.
+#' @param graph_layout Character. The layout algorithm for plotting the network. Default is "graphopt".
+#'
+#' @return A list containing:
+#'   - `overlap`: A list with hyper-, hypo-, and intersecting genes.
+#'   - `graph`: The igraph object representing the gene network.
+#'   - `ggraph`: The ggraph plot object of the network.
+#'
+#' @details
+#' This function assumes that the input data frame `df` contains columns for pathway terms and gene lists.
+#' The `edgelist` should be a data frame representing the gene interactions within the pathway.
+#' @export
+conflict_network_analysis <- function(df,
+                                      pathway,
+                                      edgelist ,
+                                      graph_layout = 'graphopt'){
+  message(">> Check colnames ...")
+  if("Term" %in% colnames(df)){
+    term <- "Term"
+  }else{
+    term <- "term_name"
+  }
+  
+  if ("Genes" %in% colnames(df)){
+    gene <- "Genes"
+  }else{
+    gene <- "overlapping_genes"
+  }
+  message(">> Decode genes ...")
+  hsc_2ne_overlap <- df %>% 
+    dplyr::filter(.[[term]] %in% pathway) %>% 
+    {
+      temp <- .
+      message(">> hyper methylation Genes are :")
+      hyper <- temp %>% 
+        dplyr::filter(direction == "hyper")
+      print(hyper[[gene]])
+      hyper <- hyper[[gene]] %>% 
+        stringr::str_split(.,";")
+      message(">> hypo methylation Genes are :")
+      hypo <- temp %>% 
+        dplyr::filter(direction == "hypo")
+      print(hypo[[gene]])
+      hypo <- hypo[[gene]] %>% 
+        stringr::str_split(.,";")
+      message(">> check intersect genes are :")
+      print(intersect(hyper[[1]],hypo[[1]]))
+      list(
+        hyper = hyper[[1]],
+        hypo = hypo[[1]],
+        intersect = intersect(hyper[[1]],hypo[[1]])
+      )
+    }
+  
+  # plot Rap1 signaling pathway subnet,出一个id+symbol+hyper/hypo标签
+  hsc_2ne_overlap_id <- hsc_2ne_overlap %>% 
+    {
+      temp <- .
+      message(">> Processing hyper gene")
+      hyperid <- Entrez_Gene_Id_db %>% 
+        dplyr::filter(SYMBOL %in% temp$hyper) %>% 
+        dplyr::mutate(direction = "hyper")
+      message(">> Processing hypo gene")
+      hypoid <- Entrez_Gene_Id_db %>% 
+        dplyr::filter(SYMBOL %in% temp$hypo)%>% 
+        dplyr::mutate(direction = "hypo")
+      combine1 <- rbind(hypoid,hyperid) %>% 
+        dplyr::filter(!(SYMBOL %in% temp$intersect))
+      combine_patch <- rbind(hypoid,hyperid) %>% 
+        dplyr::filter(SYMBOL %in% temp$intersect) %>% 
+        dplyr::distinct(SYMBOL,.keep_all = T) %>% 
+        dplyr::mutate(direction = "bisdirection")
+      rbind(combine1,combine_patch)
+    } %>% 
+    as.data.frame()
+  
+  message(">> Make graphes ...")
+  library(igraph)
+  temp_graph <- edgelist %>% 
+    dplyr::filter(!is.na(.data[["from"]])) %>% 
+    dplyr::filter(!is.na(.data[["to"]]))
+  temp_graph <- temp_graph %>% 
+    igraph::graph_from_data_frame() %>% 
+    igraph::simplify() 
+  message(">> Subset graphes by genes:")
+  subset_vid <- intersect(V(temp_graph)$name,
+                          as.character(unlist(hsc_2ne_overlap_id[["ENTREZID"]]))
+  )
+  #print(str(hsc_2ne_overlap_id))
+  #print(head(V(temp_graph)$name))
+  print(glue::glue("{length(subset_vid)}/{nrow(hsc_2ne_overlap_id)}"))
+  print(subset_vid)
+  temp_graph <- igraph::induced.subgraph(temp_graph,
+                             vids = subset_vid) 
+  # 注释
+  message(">> Create graph done!")
+  Rap1_graph_node_annote <- data.frame(ENTREZID = V(temp_graph)$name) %>% 
+    dplyr::left_join(dplyr::mutate(hsc_2ne_overlap_id,ENTREZID =as.character(ENTREZID)),
+                     by = "ENTREZID") %>% 
+    distinct(ENTREZID,.keep_all = T)
+  
+  temp_graph <- igraph::set_vertex_attr(temp_graph,
+                                        name = "symbol",
+                                        value = Rap1_graph_node_annote$SYMBOL)
+  temp_graph <- igraph::set_vertex_attr(temp_graph,
+                                        name = "direction",
+                                        value = Rap1_graph_node_annote$direction)
+  
+  # plot genetic network 
+  message(">> Plotting ...")
+  library(ggraph)
+  p <- ggraph(temp_graph, layout = graph_layout) +
+    geom_edge_link(arrow = arrow(length = unit(4, 'mm')),
+                   end_cap = circle(2, 'mm')) +
+    geom_node_point(aes(fill = direction, colour = direction),size = 8) +
+    geom_node_text(aes(label = symbol), repel = TRUE) +
+    coord_fixed() +
+    theme_graph(base_family="sans")
+  print(p)
+  return(list(
+    overlap = hsc_2ne_overlap,
+    graph = temp_graph,
+    ggraph = p
+  ))
+}
+```
+  
+```{r example-conflict_network_analysis}
+
+```
+  
+```{r tests-conflict_network_analysis}
+test_that("conflict_network_analysis works", {
+  expect_true(inherits(conflict_network_analysis, "function")) 
+})
+```
+  
+
+# Inflate your package
+
   
 ```{r development-inflate, eval=FALSE}
 # Keep eval=FALSE to avoid infinite loop in case you hit the knit button
@@ -1998,9 +2403,6 @@ test_that("beaverflow_install works", {
 fusen::inflate(flat_file = "dev/flat_beaverdown2.Rmd", 
                vignette_name = "Get started")
 ```
-
-
-# Inflate your package
 
 You're one inflate from paper to box.
 Build your package from this very Rmd using `fusen::inflate()`

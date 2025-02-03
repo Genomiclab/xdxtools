@@ -15,6 +15,8 @@ knitr::opts_chunk$set(
 
 # Beaverdown2: A Bioinformatics Workflow Management Package
 
+[NotebookLLM](https://notebooklm.google.com/notebook/67b24f6c-2f7c-40b4-9019-c68f6b391948/audio)
+
 ## 简介
 
 `Beaverdown2` 是一个基于 R 的生物信息学工作流管理工具包，旨在简化和自动化复杂的生物信息学分析流程。它结合了 R6 类和 Snakemake 工作流引擎，支持多种分析模式（如 RRBS、WGBS 和 RNAseq），并能够运行在不同的计算环境中（如 Kubernetes、Slurm 和容器化环境）。通过 `Beaverdown2`，用户可以轻松配置、管理和执行生物信息学分析任务，同时支持 PDX/CDX（患者/细胞系来源异种移植）分析流程。
@@ -85,9 +87,10 @@ pak::pak("rainoffallingstar/beaverdown2")
 library(Beaverdown2) 
 beaverflow_install(workflow_dir = "/path/to/your/workflow_dir",build_env = T)
 ```
+
 当 Conda 环境构建完成后，请下载我们提供的需放置于 `inst/` 文件夹下的[参考基因组文件](https://pan.quark.cn/s/e0908b382183) ，或者建议自行构建 Bismark/STAR 所需的参考基因组文件。这些文件路径需要在 `BeaverGandalf$new()` 中指定，相关参数包括 `genomeFile`、`gnome_fasta`、`cgGR_gz`、`CGI`、`rnaseq_gtf` 和 `rnaseq_ref`。
 
-```bash
+``` bash
 inst
 ├── Entrez_Gene_Id_db.RDS
 ├── hg19
@@ -105,8 +108,8 @@ inst
        ├── hg19.fasta
        
 ```
-当创建 BeaverGandalf 对象时，结果目录将在 `{userspace}/{jobid}`（也是 `BeaverGandalf$new()` 的参数）中通过 `gandalf_create_filework` 方法创建。
 
+当创建 BeaverGandalf 对象时，结果目录将在 `{userspace}/{jobid}`（也是 `BeaverGandalf$new()` 的参数）中通过 `gandalf_create_filework` 方法创建。
 
 ``` bash
 {jobid}
@@ -130,13 +133,11 @@ inst
     ├── RData
 ```
 
-
-
 ## **使用方法**
 
 ### **初始化工作流**
 
-```R         
+``` r
 library(beaverdown2) 
 
 # in detail
@@ -170,12 +171,11 @@ pdata = use_server_pdata(serverpath = "/config/20240923.xlsx"),   # pdata of sam
 workflow_endpoint = "3", # 1 for fastq QC; 2 for mapping ; 3 for expression/methylation matrix    
 user_email = "whoami@qq.com" # email needs additional setting
 )
-
 ```
 
 ### **运行工作流**
 
-```R         
+``` r
 # 处理fastq 文件
 gandalf_RRBS$gandalf_fastq_move(method = "copy") # 可以改进为move
 # 初始化运行目录
@@ -188,14 +188,14 @@ gandalf_RRBS$gandalf2wars(dry_run = F,snakemake_condaenv = "snakemake",use_sbatc
 
 ### **聚合结果**
 
-```R         
+``` r
 # 聚合结果并压缩 
 gandalf_RRBS$gandalf_aggResult(resultType = "matrix", method = "zip")
 ```
 
 ### **更新工作流**
 
-```R         
+``` r
 update_gandalf(gandalf_RRBS)
 ```
 
