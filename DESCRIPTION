@@ -39,7 +39,7 @@ Suggests:
     testthat
 VignetteBuilder: 
     knitr
-Config/fusen/version: 0.7.1
+Config/fusen/version: 0.6.0
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
