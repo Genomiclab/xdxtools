@@ -691,11 +691,16 @@ BeaverGandalf <- R6::R6Class(
       }
       
       self$graft <- graft
+      # Add rule for graft calculation when species length is 1
+      if (length(c(species1,species2)) <2){
+        self$graft <- species1
+      }
       if (graft == species1){
         self$host = species2
       } else {
         self$host = species1
       }
+      
       if (!is.null(species1) & !is.null(species2)){
         self$PDX_pipeline = T
       }else{
