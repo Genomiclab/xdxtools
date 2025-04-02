@@ -201,7 +201,7 @@ use_server_pdata <- function(uploadfile = NULL,
     }
     return(data)
   }else{
-    return(data.frame(sampleid = "NA",inline_barcode_sequence = "NA"))
+    return(data.frame())
   }
 }
 ```
@@ -285,12 +285,16 @@ revCompString <- function(strings){
     return(res)
   }
   
-  strings = toupper(strings)	
-  idx = data.frame(to = c("T", "C", "G", "A", "N"), row.names = c("A", "G", "C", "T", "N"))
-  res = as.character(sapply(strings, function(x) revString(paste(as.character(idx[strsplit(x, "")[[1]], "to"]), collapse = ""))))
-  # chars = strsplit(strings, "")[[1]]
-  # res = revString(paste(as.character(idx[chars, "to"]), collapse = ""))
-  return(res)
+  if (is.na(strings) | is.null(strings) | strings == ""){
+    return("")
+  }else{
+    strings = toupper(strings)	
+    idx = data.frame(to = c("T", "C", "G", "A", "N"), row.names = c("A", "G", "C", "T", "N"))
+    res = as.character(sapply(strings, function(x) revString(paste(as.character(idx[strsplit(x, "")[[1]], "to"]), collapse = ""))))
+    # chars = strsplit(strings, "")[[1]]
+     # res = revString(paste(as.character(idx[chars, "to"]), collapse = ""))
+    return(res)
+  }
 }
 ```
   
@@ -687,11 +691,16 @@ BeaverGandalf <- R6::R6Class(
       }
       
       self$graft <- graft
+      # Add rule for graft calculation when species length is 1
+      if (length(c(species1,species2)) <2){
+        self$graft <- species1
+      }
       if (graft == species1){
         self$host = species2
       } else {
         self$host = species1
       }
+      
       if (!is.null(species1) & !is.null(species2)){
         self$PDX_pipeline = T
       }else{
@@ -813,9 +822,17 @@ BeaverGandalf <- R6::R6Class(
       self$uploadfile <- uploadfile %>% 
         dplyr::mutate(sampleid = samples) %>% 
         dplyr::filter(sampleid %in% samples_paired)
+      
+      if (ncol(pdata) == 0){
+        pdata <- data.frame(
+          sampleid = samples_paired
+        ) %>%
+        dplyr::mutate(inline_barcode_sequence = NA)
+      }
+      
       if (!("sampleid" %in% colnames(pdata))){
         pdata <- pdata %>% 
-          dplyr::mutate(sampleid = NA)
+          dplyr::mutate(sampleid = samples_paired)
       }
       if (!("inline_barcode_sequence" %in% colnames(pdata))){
         pdata <- pdata %>% 
@@ -1120,12 +1137,17 @@ BeaverGandalf <- R6::R6Class(
         message(">> Plan for mem usage created.")
       }
       
-      if (self$Mode == "RNASEQ"){
+      if (self$PDX_pipeline){
+        if (self$Mode == "RNASEQ"){
+          workflow_idx = glue::glue("Beaver{self$Mode}PDX")
+          job_idx = "rnaseq"
+        }else{
+          workflow_idx = glue::glue("BeaverPDX")
+          job_idx = "bsseq"
+        }
+      } else if (self$Mode == "RNASEQ"){
         workflow_idx = "BeaverRNA"
         job_idx = "rnaseq"
-      } else if (self$PDX_pipeline){
-        workflow_idx = "BeaverPDX"
-        job_idx = "bsseq"
       } else {
         workflow_idx = "BeaverBS"
         job_idx = "bsseq"

@@ -10,7 +10,8 @@ rule xenofilteR:
     host = config["host"],
     graft = config["graft"],
     MM_threshold = 6,
-    Unmapped_penalty = 8
+    Unmapped_penalty = 8,
+    mode = config["Mode"]
   threads:4
   shell:
     """
@@ -19,7 +20,8 @@ rule xenofilteR:
     --host {params.host} \
     --threads {threads} \
     --MM_threshold {params.MM_threshold} \
-    --Unmapped_penalty {params.Unmapped_penalty}
+    --Unmapped_penalty {params.Unmapped_penalty} \
+    --Mode {params.mode}
     
     """
     

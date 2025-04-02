@@ -5,7 +5,7 @@ rule build_expression_matrix :
   output:
     os.path.join(config["outDir_mCall"], "{sample}_{species}.txt")
   params:
-    rnaseq_gtf = config["rnaseq_gtf"],
+    rnaseq_gtf = lambda wildcards:config["rnaseq_gtf"][config["species"].index(wildcards.species)],
     methylkit = lambda wildcards:os.path.join(config["outDir_mCall"], f"{wildcards.sample}_"+f"{wildcards.species}"+".txt")
   threads:5
   shell:

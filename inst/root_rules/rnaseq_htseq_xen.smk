@@ -1,7 +1,7 @@
 rule build_expression_matrix :
   message:"Build expression matrix ..."
   input:
-    bam_sorted = lambda wildcards:os.path.join(config["bsmapDir"], f"{wildcards.sample}_"+f"{wildcards.species}"+".bam")
+    bam_sorted = lambda wildcards:os.path.join(config["bsmapDir"],"Filtered_bams" , f"{wildcards.sample}_"+f"{wildcards.species}"+"_Filtered.bam")
   output:
     os.path.join(config["outDir_mCall"], "{sample}_{species}.txt")
   params:
@@ -10,7 +10,15 @@ rule build_expression_matrix :
   threads:5
   shell:
     """
-    conda run -n htseq htseq-count -f bam -r name -s yes -t exon -i gene_id -m intersection-nonempty \
+      samtools \
+      sort -@ {threads} \
+      -o {input.bam_sorted} \
+      {input.bam_sorted}
+      
+      samtools index {input.bam_sorted}
+    
+      htseq-count -f bam -r name -s yes -t exon -i gene_id \
+      -m intersection-nonempty \
     {input.bam_sorted} {params.rnaseq_gtf} > {params.methylkit}
 
     """

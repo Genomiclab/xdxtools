@@ -1,10 +1,9 @@
 rule xenofilteR:
   message:"xenofilteR ..."
   input:
-    expand(os.path.join(config["bsmapDir"], "{sample}_{species}_pdx_patch_success"),sample=config["SIDs"],species = config["species"]),
-    expand(os.path.join(config["bsmapDir"], "{sample}_fixed_{species}.bam"), sample=config["SIDs"],species = config["species"])
+    expand(os.path.join(config["bsmapDir"], "{sample}_{species}.bam"), sample=config["SIDs"],species = config["species"])
   output:
-    os.path.join(config["bsmapDir"],"Filtered_bams" ,"{sample}_fixed_"+config["graft"]+"_Filtered.bam")
+    os.path.join(config["bsmapDir"],"Filtered_bams" ,"{sample}_"+config["graft"]+"_Filtered.bam")
   params:
     filter_root = config["bsmapDir"],
     host = config["host"],
@@ -15,7 +14,7 @@ rule xenofilteR:
   threads:4
   shell:
     """
-    conda run -n base Rscript R/xenofilteR.R -d {params.filter_root} \
+    Rscript R/xenofilteR.R -d {params.filter_root} \
     --graft {params.graft} \
     --host {params.host} \
     --threads {threads} \

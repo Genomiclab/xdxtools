@@ -31,6 +31,6 @@ use_server_pdata <- function(uploadfile = NULL,
     }
     return(data)
   }else{
-    return(data.frame(sampleid = "NA",inline_barcode_sequence = "NA"))
+    return(data.frame())
   }
 }

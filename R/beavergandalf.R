@@ -441,9 +441,17 @@ BeaverGandalf <- R6::R6Class(
       self$uploadfile <- uploadfile %>% 
         dplyr::mutate(sampleid = samples) %>% 
         dplyr::filter(sampleid %in% samples_paired)
+      
+      if (ncol(pdata) == 0){
+        pdata <- data.frame(
+          sampleid = samples_paired
+        ) %>%
+        dplyr::mutate(inline_barcode_sequence = NA)
+      }
+      
       if (!("sampleid" %in% colnames(pdata))){
         pdata <- pdata %>% 
-          dplyr::mutate(sampleid = NA)
+          dplyr::mutate(sampleid = samples_paired)
       }
       if (!("inline_barcode_sequence" %in% colnames(pdata))){
         pdata <- pdata %>% 
@@ -748,12 +756,17 @@ BeaverGandalf <- R6::R6Class(
         message(">> Plan for mem usage created.")
       }
       
-      if (self$Mode == "RNASEQ"){
+      if (self$PDX_pipeline){
+        if (self$Mode == "RNASEQ"){
+          workflow_idx = glue::glue("Beaver{self$Mode}PDX")
+          job_idx = "rnaseq"
+        }else{
+          workflow_idx = glue::glue("BeaverPDX")
+          job_idx = "bsseq"
+        }
+      } else if (self$Mode == "RNASEQ"){
         workflow_idx = "BeaverRNA"
         job_idx = "rnaseq"
-      } else if (self$PDX_pipeline){
-        workflow_idx = "BeaverPDX"
-        job_idx = "bsseq"
       } else {
         workflow_idx = "BeaverBS"
         job_idx = "bsseq"
