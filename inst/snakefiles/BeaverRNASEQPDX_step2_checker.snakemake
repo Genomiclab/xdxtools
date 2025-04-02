@@ -6,23 +6,8 @@ chrs = config["chrs"]
 # 运行所有流程时，rule all 需要加入所有的output汇总
 rule all:
   input:
-    expand(os.path.join(config["bsmapDir"], "{sample}_{species}.bam"), sample=SIDs,species = species) ,
-    expand(os.path.join(config["outdir_qualimap"],"{sample}_{species}","qualimapReport.html") , sample=SIDs,species = species) ,
-    expand(os.path.join(config["outDir_mCall"], "{sample}_{species}"+".txt"), sample=SIDs,species = species),
-    os.path.join(config["outDir_betaM"], "matrix_count.txt"),
-    os.path.join(config["outDir_betaM"], "matrix_norm.txt"),
-    os.path.join(config["SID_log"], "step2_success.txt"),
-    os.path.join(config["qc_summary"],"qc_summary.txt")
+    expand(os.path.join(config["bsmapDir"], "{sample}_{species}.bam"), sample=config["SIDs"],species = config["species"]),
+    expand(os.path.join(config["bsmapDir"],"Filtered_bams" ,"{sample}_"+"{species}"+"_Filtered.bam"), sample=SIDs,species = species)
 
-# construct matrix 
-
-include:"rules/rnaseq_matrix.smk"
-
-# step checker
-
-include: "rules/rnaseq_step2_checker.smk"
-
-# qc summary 
-
-include:"rules/rna_qc_summary.smk"
+include: "rules/XenofilteR_RNA.smk"
 

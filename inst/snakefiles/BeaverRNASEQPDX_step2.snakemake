@@ -7,22 +7,14 @@ chrs = config["chrs"]
 rule all:
   input:
     expand(os.path.join(config["bsmapDir"], "{sample}_{species}.bam"), sample=SIDs,species = species) ,
-    expand(os.path.join(config["outdir_qualimap"],"{sample}_{species}","qualimapReport.html") , sample=SIDs,species = species) ,
-    expand(os.path.join(config["outDir_mCall"], "{sample}_{species}"+".txt"), sample=SIDs,species = species)
+    expand(os.path.join(config["outdir_qualimap"],"{sample}_{species}","qualimapReport.html") , sample=SIDs,species = species)
 
 # bowtie2 mapping
 
 include: "rules/rnaseq_mapping.smk"
 
-# filteration
-
-include: "rules/XenofilteR_RNA.smk"
-
 # qualimap
 
 include:"rules/05-3-qualimap.smk"
 
-# build matrix
-
-include:"rules/rnaseq_htseq_xen.smk"
 

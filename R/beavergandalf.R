@@ -793,7 +793,7 @@ BeaverGandalf <- R6::R6Class(
         endpoint = self$workflow_endpoint
       ) %>% 
         dplyr::filter(endpoint == T)
-      if (self$Mode == "RNASEQ" & nrow(task_df) == 3){
+      if (self$Mode == "RNASEQ" & nrow(task_df) == 3 & !(self$PDX_pipeline)){
         task_df <- task_df[1:2,]
       }
       message(glue::glue(">> This workflow will be ended in step {nrow(task_df)}"))
