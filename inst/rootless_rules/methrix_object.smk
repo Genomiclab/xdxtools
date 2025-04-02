@@ -9,14 +9,16 @@ rule create_methrix_object :
 
   params:
     mcall_dir = config["outDir_mCall"],
-    methrix_dir = os.path.join(config["outDir_mCall"], "methrixh5")
+    methrix_dir = os.path.join(config["outDir_mCall"], "methrixh5"),
+    genome = config["genomeAnno"][config["species"].index(config["graft"])]
   threads:10
   shell:
     """
       conda run -n base Rscript R/build_methrix.R \
       --filein {params.mcall_dir} \
       --fileout {params.methrix_dir} \
-      --cores {threads}
+      --cores {threads} \
+      --Genome {params.genome}
 
     """
    

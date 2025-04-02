@@ -73,6 +73,7 @@
 #' @field methrixh5 Directories for methrix H5 and GC bias results.
 #' @field GCbias Directories for methrix H5 and GC bias results.
 #' @field userspace The root directory for user workflows.
+#' @field genomeAnno the shortname of Genomes used in the BSseq Pipelines
 #' @method initialize initialize 
 #' @method gandalf_info gandalf_info 
 #' @method gandalf_fastq_move gandalf_fastq_move 
@@ -104,6 +105,7 @@ BeaverGandalf <- R6::R6Class(
                     "inst/pdx/mouse/GRCm38.fasta"),
     genomeFile = c("inst/pdx/homo_sapiens/",
                     "inst/pdx/mouse/"),
+    genomeAnno = c("hg19","GRCm38"),
     rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
     rnaseq_ref = "inst/rnaseq/homo_sapiens/",
     #CGIRData = "inst/hg19/hg19_CGI_GR.RData",
@@ -206,6 +208,7 @@ BeaverGandalf <- R6::R6Class(
 #' @param init_log \code{character} or \code{NULL} Initialization log (default: NULL).
 #' @param user_email \code{character} User email for notifications (default: "whoami").
 #' @param new_userid_always \code{logical} Whether to always generate a new user ID (default: TRUE).
+#' @param genomeAnno the shortname of Genomes used in the BSseq Pipelines ,default:c("hg19","GRCm38")
 #'
 #' @return An initialized BeaverGandalf object.
 #' @export
@@ -224,6 +227,7 @@ BeaverGandalf <- R6::R6Class(
                                           "inst/pdx/mouse/GRCm38.fasta"),
                           genomeFile = c("inst/pdx/homo_sapiens/",
                                          "inst/pdx/mouse/"),
+                          genomeAnno = c("hg19","GRCm38"),
                           rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
                           rnaseq_ref = "inst/rnaseq/homo_sapiens/",
                           fastqDir = "/data",
@@ -289,6 +293,7 @@ BeaverGandalf <- R6::R6Class(
       self$genomeFile = genomeFile
       self$rnaseq_gtf = rnaseq_gtf
       self$rnaseq_ref = rnaseq_ref
+      self$genomeAnno = genomeAnno
       #self$CGIRData = CGIRData
       #self$CCGG = CCGG
       #self$CpG  = CpG
@@ -637,6 +642,7 @@ BeaverGandalf <- R6::R6Class(
         T2  = self$T2,
         genomeFile = self$genomeFile,
         gnome_fasta = self$gnome_fasta,
+        genomeAnno = self$genomeAnno ,
         #hg19_genomeFile = self$hg19_genomeFile,
         #cgGR = self$cgGR,
         cgGR_gz = self$cgGR_gz,

@@ -153,6 +153,8 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 \item{\code{GCbias}}{Directories for methrix H5 and GC bias results.}
 
 \item{\code{userspace}}{The root directory for user workflows.}
+
+\item{\code{genomeAnno}}{the shortname of Genomes used in the BSseq Pipelines}
 }
 \if{html}{\out{</div>}}
 }
@@ -214,6 +216,7 @@ run on different computing environments (e.g., Kubernetes, Slurm).
   CGI = "inst/hg19/hg19_cpgIsland.bed",
   gnome_fasta = c("inst/pdx/homo_sapiens/hg19.fasta", "inst/pdx/mouse/GRCm38.fasta"),
   genomeFile = c("inst/pdx/homo_sapiens/", "inst/pdx/mouse/"),
+  genomeAnno = c("hg19", "GRCm38"),
   rnaseq_gtf = "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf",
   rnaseq_ref = "inst/rnaseq/homo_sapiens/",
   fastqDir = "/data",
@@ -316,6 +319,8 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 \item{\code{gnome_fasta}}{\code{character} or \code{vector} Path(s) to genome FASTA files (default: hg19 and GRCm38).}
 
 \item{\code{genomeFile}}{\code{character} or \code{vector} Path(s) to genome files (default: hg19 and GRCm38).}
+
+\item{\code{genomeAnno}}{the shortname of Genomes used in the BSseq Pipelines ,default:c("hg19","GRCm38")}
 
 \item{\code{rnaseq_gtf}}{\code{character} Path to RNAseq GTF file (default: "inst/rnaseq/homo_sapiens/hg19.ensGene_sorted.gtf").}
 
