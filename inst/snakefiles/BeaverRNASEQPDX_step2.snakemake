@@ -7,6 +7,7 @@ chrs = config["chrs"]
 rule all:
   input:
     expand(os.path.join(config["bsmapDir"], "{sample}_{species}.bam"), sample=SIDs,species = species) ,
+    expand(os.path.join(config["bsmapDir"], "{sample}_{species}_pdx_patch_success"),sample=SIDs,species = species),
     expand(os.path.join(config["outdir_qualimap"],"{sample}_{species}","qualimapReport.html") , sample=SIDs,species = species)
 
 # bowtie2 mapping
@@ -17,4 +18,7 @@ include: "rules/rnaseq_mapping.smk"
 
 include:"rules/05-3-qualimap.smk"
 
+# pdx patch for bam files
+
+include:"rules/picard_pdx_patch.smk"
 

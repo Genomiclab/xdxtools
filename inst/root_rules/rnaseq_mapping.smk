@@ -24,6 +24,7 @@ rule rnaseqmappingbowtie:
     --twopassMode Basic \
     --outSAMunmapped None \
     --outSAMtype BAM SortedByCoordinate \
+    --outSAMattributes NH HI AS nM NM MD \
     --outFileNamePrefix  {params.bam_aligned_prefix} 
     
     samtools sort -@ {threads} -o {params.bam_sorted} {params.bam_aligned}

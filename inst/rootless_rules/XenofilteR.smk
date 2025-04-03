@@ -9,7 +9,7 @@ rule xenofilteR:
     filter_root = config["bsmapDir"],
     host = config["host"],
     graft = config["graft"],
-    MM_threshold = 6,
+    MM_threshold = (4 if config["Mode"] == "RNASEQ" else 6),
     Unmapped_penalty = 8,
     mode = config["Mode"]
   threads:4

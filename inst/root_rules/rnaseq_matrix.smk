@@ -1,7 +1,7 @@
 rule construct_expression_matrix :
   message:"Construct expression matrix ..."
   input:
-    expand(os.path.join(config["outDir_mCall"], "{sample}" + "_" + config["species"] + ".txt"), sample=config["SIDs"])
+    expand(os.path.join(config["outDir_mCall"], "{sample}" + "_" + config["graft"] + ".txt"), sample=config["SIDs"])
   output:
     os.path.join(config["outDir_betaM"], "matrix_count.txt"),
     os.path.join(config["outDir_betaM"], "matrix_norm.txt")

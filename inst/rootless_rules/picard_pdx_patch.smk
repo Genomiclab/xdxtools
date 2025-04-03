@@ -10,7 +10,19 @@ rule picard_pdx_patch:
     fasta = lambda wildcards:config["gnome_fasta"][config["species"].index(wildcards.species)]
   threads:4
   run:
-        if len(config["species"]) > 1:
+        if config["Mode"] == "RNASEQ":
+            shell(
+                """
+                conda run -n picard picard SetNmMdAndUqTags \
+                I={input.bam_sorted} \
+                O={params.bam_fixed} \
+                R={params.fasta} \
+                IS_BISULFITE_SEQUENCE=false
+                
+                touch {params.marker}
+                """
+            )
+        else:
             shell(
                 """
                 conda run -n picard picard SetNmMdAndUqTags \
@@ -19,12 +31,6 @@ rule picard_pdx_patch:
                 R={params.fasta} \
                 IS_BISULFITE_SEQUENCE=true 
                 
-                touch {params.marker}
-                """
-            )
-        else:
-            shell(
-                """
                 touch {params.marker}
                 """
             )

@@ -31,12 +31,13 @@ if (mode == "RNASEQ"){
                         pattern = "*.bam$",
                         full.names = F) %>%
     stringr::str_remove(.,glue::glue("_{graft}.bam")) %>%
-    stringr::str_remove(.,glue::glue("_{host}.bam"))
+    stringr::str_remove(.,glue::glue("_{host}.bam")) %>%
+    unique()
   sample.list <- data.frame(
     samples = samples
   ) %>%
-    dplyr::mutate(Graft = paste0(filter_root,"/",samples,"_",graft,".bam")) %>%
-    dplyr::mutate(Host = paste0(filter_root,"/",samples,"_",host,".bam")) %>%
+    dplyr::mutate(Graft = paste0(filter_root,"/",samples,"_fixed_",graft,".bam")) %>%
+    dplyr::mutate(Host = paste0(filter_root,"/",samples,"_fixed_",host,".bam")) %>%
     dplyr::select(-samples)
 }else{
   samples <- list.files(filter_root,"_val_1_bismark_bt2_PE_report.txt",recursive = T) %>%
@@ -58,4 +59,5 @@ tryerror <- try(fs::dir_delete(paste0(filter_root,"/Filtered_bams")))
 XenofilteR::XenofilteR(sample.list = sample.list,
                        destination.folder =filter_root,
                        bp.param = bp.param, output.names = NULL,
-                       MM_threshold=MM_threshold, Unmapped_penalty = Unmapped_penalty )
+                       MM_threshold=MM_threshold,
+                       Unmapped_penalty = Unmapped_penalty )
