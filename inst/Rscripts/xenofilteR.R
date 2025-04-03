@@ -32,7 +32,9 @@ if (mode == "RNASEQ"){
                         full.names = F) %>%
     stringr::str_remove(.,glue::glue("_{graft}.bam")) %>%
     stringr::str_remove(.,glue::glue("_{host}.bam")) %>%
+    stringr::str_remove(.,glue::glue("_fixed")) %>%
     unique()
+
   sample.list <- data.frame(
     samples = samples
   ) %>%
