@@ -4,7 +4,7 @@ rule xenofilteR:
     expand(os.path.join(config["bsmapDir"], "{sample}_{species}_pdx_patch_success"),sample=config["SIDs"],species = config["species"]),
     expand(os.path.join(config["bsmapDir"], "{sample}_fixed_{species}.bam"), sample=config["SIDs"],species = config["species"])
   output:
-    os.path.join(config["bsmapDir"],"Filtered_bams" ,"{sample}_fixed_"+config["graft"]+"_Filtered.bam")
+    os.path.join(config["bsmapDir"],"Filtered_bams" ,"filtered_success.txt")
   params:
     filter_root = config["bsmapDir"],
     host = config["host"],
@@ -22,6 +22,8 @@ rule xenofilteR:
     --MM_threshold {params.MM_threshold} \
     --Unmapped_penalty {params.Unmapped_penalty} \
     --Mode {params.mode}
+    
+    touch {params.filter_root}/Filtered_bams/filtered_success.txt
     
     """
     
