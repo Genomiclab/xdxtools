@@ -5,7 +5,8 @@ rule create_methrix_object :
   output:
     os.path.join(config["outDir_mCall"], "methrixh5","assays.h5"),
     os.path.join(config["outDir_mCall"], "methrixh5","se.rds"),
-    os.path.join(config["outDir_mCall"], "methrixh5","bsseq.RDS")
+    os.path.join(config["outDir_mCall"], "methrixh5","bsseq.RDS"),
+    os.path.join(config["outDir_mCall"], "methrixh5","CpG_coverage.xlsx")
 
   params:
     mcall_dir = config["outDir_mCall"],

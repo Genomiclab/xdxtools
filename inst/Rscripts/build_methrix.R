@@ -61,6 +61,65 @@ meth = methrix::read_bedgraphs(files = bismark_covfiles,
                                vect = F)
 #fs::dir_delete(temp_dir)
 
+methrix_obj_clean <- meth %>%
+  methrix::remove_uncovered()
+# CpG coverage
+
+methrix_obj_coverage <- methrix::get_matrix(methrix_obj_clean,
+                                            type="C",
+                                            add_loci = F) %>%
+  as.data.frame()
+
+coverage_df <- NULL
+for (i in 1:ncol(methrix_obj_coverage)){
+  message(">> Processing Sample",i)
+  tempdf <- table(methrix_obj_coverage[[colnames(methrix_obj_coverage)[i]]],useNA = "no")
+  names(tempdf) <- paste0(names(tempdf),"X")
+  subset_X <- c("1X","2X","3X","4X","5X","10X")
+  subset_X <- subset_X[subset_X %in% names(tempdf) ]
+
+  cover_list_tbl <- list()
+  for (a in 1:length(subset_X)){
+    if (a == 1){
+      subset_X_idx <- c()
+    }else{
+      subset_X_idx <- paste0(1:a-1,"X")
+    }
+    subset_X_count <- setdiff(names(tempdf),subset_X_idx)
+
+    tempcount <- tempdf[subset_X_count] %>%
+      sum()
+
+    cover_list_tbl[[a]] <- data.frame(
+      names = subset_X[a],
+      freq = tempcount
+    )
+  }
+
+  tempdf_i <- data.table::rbindlist(cover_list_tbl) %>%
+    as.data.frame()
+  colnames(tempdf_i)[2] <- colnames(methrix_obj_coverage)[i] %>%
+    stringr::str_remove(.,"_nsort")
+
+  if (is.null(coverage_df)){
+    coverage_df <- tempdf_i
+  }else{
+    coverage_df <- coverage_df %>%
+      dplyr::left_join(tempdf_i,by = "names")
+  }
+}
+
+coverage_df %>%
+  tibble::column_to_rownames("names") %>%
+  t() %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("sampleid") %>%
+  dplyr::relocate(sampleid) %>%
+  dplyr::left_join(qc_all,by = "sampleid") %>%
+  openxlsx::write.xlsx(.,
+                       paste0(fileout,"/CpG_coverage.xlsx"))
+
+
 meth %>%
   methrix::convert_HDF5_methrix() %>%
   methrix::methrix2bsseq() %>%

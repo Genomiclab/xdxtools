@@ -9,7 +9,8 @@ rule qcsummary:
     expand(os.path.join(config["qcDir_after"], "{sample}_val_2_fastqc.html"), sample=config["SIDs"]),
     expand(os.path.join(config["qcDir"], "{sample}_seqkit_stat.txt"), sample=config["SIDs"]) ,
     expand(os.path.join(config["bsmapDir"], "{sample}_{species}.bam"), sample=config["SIDs"],species =config["species"]) ,
-    expand(os.path.join(config["outdir_qualimap"],"{sample}_{species}","qualimapReport.html") , sample=config["SIDs"],species =config["species"])
+    expand(os.path.join(config["outdir_qualimap"],"{sample}_{species}","qualimapReport.html") , sample=config["SIDs"],species =config["species"]),
+    os.path.join(config["outDir_mCall"], "methrixh5","CpG_coverage.xlsx")
   output:
     os.path.join(config["qc_summary"],"qc_summary.txt")
   params:

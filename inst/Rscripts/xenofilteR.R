@@ -63,3 +63,53 @@ XenofilteR::XenofilteR(sample.list = sample.list,
                        bp.param = bp.param, output.names = NULL,
                        MM_threshold=MM_threshold,
                        Unmapped_penalty = Unmapped_penalty )
+
+if (file.exists(paste0(filter_root,"/Filtered_bams/XenofilteR.log"))){
+  # 读取日志文件
+  log_content <- readLines(paste0(filter_root,"/Filtered_bams/XenofilteR.log"))
+
+  # 提取包含"Filtered"关键字的行
+  filtered_lines <- grep("Filtered", log_content, value = TRUE)
+
+  # 创建一个空的数据框来存储结果
+  result <- data.frame(Sample = character(),
+                       Filtered = numeric(),
+                       Total = numeric(),
+                       #Percent = numeric(),
+                       stringsAsFactors = FALSE)
+
+  # 遍历每一行并提取信息
+  for (line in filtered_lines) {
+    # 提取样本名
+    sample <- sub(".*INFO.*(SRR[0-9]+).*", "\\1", line)
+
+    # 提取过滤的reads数
+    filtered <- as.numeric(sub(".*Filtered ([0-9]+) read pairs.*", "\\1", line))
+
+    # 提取总reads数
+    total <- as.numeric(sub(".*out of ([0-9]+).*", "\\1", line))
+
+    # 提取百分比
+    #percent <- as.numeric(sub(".*- ([0-9.]+) Percent.*", "\\1", line))
+
+    # 添加到结果数据框
+    result <- rbind(result, data.frame(Sample = sample,
+                                       Filtered = filtered,
+                                       Total = total #,Percent = percent
+                                       ))
+  }
+
+  result <- result %>%
+    dplyr::mutate(Percent = Filtered/Total)
+  colnames(result) <- c("sampleid",
+                        "Filtered Reads",
+                        "Total Reads",
+                        "Filtered Percent")
+
+  # 将结果写入CSV文件
+  openxlsx::write.xlsx(result,
+                       paste0(filter_root,
+                              "/Filtered_bams/filtered_reads_summary.xlsx")
+                       )
+
+}
