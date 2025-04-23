@@ -719,6 +719,8 @@ BeaverGandalf <- R6::R6Class(
 #' @param use_sbatch \code{logical} Whether to use sbatch to submit a job or use srun in FALSE
 #' @param cpus the cpu cores used in the 3 steps, default as 20,40,10
 #' @param mem the mem used in the 3 steps,default as "100G","400G","400G"
+#' @param dwarf_workers the Parallel number in Step 2 and Step 3,default as 1.
+#' 
 #' @return \code{NULL} (executes the workflow and logs the process).
 #'
 #' @details
@@ -736,7 +738,9 @@ BeaverGandalf <- R6::R6Class(
                             partition = "amd_512",
                             use_sbatch = F,
                             cpus = c("20","40","10"),
-                            mem = c("100G","400G","400G")){
+                            mem = c("100G","400G","400G"),
+                            dwarf_workers = 1){
+      require("future")
       message(">> Configuring cpu paramters.")
       if (length(cpus) > 3){
         message(">> Too much steps,use the first 3 steps.")
@@ -762,6 +766,22 @@ BeaverGandalf <- R6::R6Class(
         mem <- c(mem,"400G")
       }else {
         message(">> Plan for mem usage created.")
+      }
+      
+      # processing dwarf workers used in future package Parallel processing
+      
+      max_dwarf_workfers <- parallel::detectCores()
+      if (dwarf_workers < 1 | !is.numeric(dwarf_workers)){
+        dwarf_workers <- 1
+      }
+      
+      if (dwarf_workers <= max_dwarf_workfers & dwarf_workers > 1){
+        message(glue::glue(">> {dwarf_workers} dwarf_workers are in call.Parallel processing is enable."))
+      }else if (dwarf_workers == 1) {
+        message(">> 1 dwarf_worker is in call.Sequential processing is used.")
+      }else{
+        message(glue::glue(">> Too many dwarf_workers are request. Only {max_dwarf_workfers} dwarf_workers are in call.Parallel processing is enable."))
+        dwarf_workers <- max_dwarf_workfers
       }
       
       if (self$PDX_pipeline){
@@ -811,7 +831,10 @@ BeaverGandalf <- R6::R6Class(
       
       if (enigent %in% "k8s"){
         message(glue::glue(">> configure job files ... "))
+        
         # read & write job yaml files
+        # in future : implement of ClusterFunctions for Docker from batchtools package in https://mllg.github.io/batchtools/reference/makeClusterFunctionsDocker
+        
         for (i in 1:nrow(task_df)){
           if (task_df$steps[i] == "step1"){
             message(">> [",Sys.time(),"] Run in Step 1")
@@ -838,6 +861,7 @@ BeaverGandalf <- R6::R6Class(
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
+            # in future: use future framework to doParallel
             for (a in 1:length(self$samples)){
               message(glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
               self$run_log <- c(self$run_log,
@@ -911,10 +935,12 @@ BeaverGandalf <- R6::R6Class(
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
-            for (a in 1:length(self$samples)){
-              message(glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
-              self$run_log <- c(self$run_log,
-                                glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
+            
+            # use future Parallel framework 
+            future::plan(future::multisession, workers = dwarf_workers)
+            dwarf_results <- furrr::future_map(1:length(self$samples), function(a){
+              init_dwarf_work <- glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}")
+              message(init_dwarf_work)
               configfiles$SIDs <-  self$samples[a]
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
@@ -925,13 +951,26 @@ BeaverGandalf <- R6::R6Class(
                 status <- system(command = command,intern = T)
             })
             
-            self$run_log <- c(self$run_log,
-                              status,
-                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(status)
             message(">> Done! Elapsed time : ",
                     round(time_usage["elapsed"],digits = 3),
                     "s")
+            list(
+              summary_report = c(
+                init_dwarf_work,
+                status,
+                glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+              
+            )
             }
+            )
+            # merge logs
+            self$run_log <- c(self$run_log,
+                              unlist(dwarf_results))
+            # release workers
+            
+            future::plan(future::sequential)
+            
             message(glue::glue(">>  [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
                               glue::glue(">>  [{Sys.time()}]Aggather the Results from Step {i}"))
@@ -960,7 +999,7 @@ BeaverGandalf <- R6::R6Class(
             "library(beaverdown2)",
             "library(dplyr)",
             glue::glue("BeaverGandalf <- readRDS('{self$logsummary}/workflow.RDS')"),
-            "BeaverGandalf$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F,cpus = c('40','40','40'),mem = c('400G','400G','400G'),partition = '{partition}')"
+            "BeaverGandalf$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F,cpus = c('40','40','40'),mem = c('400G','400G','400G'),partition = '{partition}',dwarf_workers = 3)"
           )
           rfile <- paste0(self$logsummary,
                                 "/workflow.R")
@@ -968,7 +1007,7 @@ BeaverGandalf <- R6::R6Class(
                      rfile)
           out <- paste0(self$logsummary,"/beaverflow.out")
           err <- paste0(self$logsummary,"/beaverflow.err")
-          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=40 --mem=400G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
+          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=43 --mem=400G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
           # 运行 sbatch 提交
           message(">> Submitting Jobs by sbatch")
           system(command = sbatch_command)
@@ -1002,10 +1041,12 @@ BeaverGandalf <- R6::R6Class(
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
-            for (a in 1:length(self$samples)){
-              message(glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
-              self$run_log <- c(self$run_log,
-                                glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
+            # use future framework
+            future::plan(future::multisession, workers = dwarf_workers)
+            dwarf_results <- furrr::future_map(1:length(self$samples), function(a){
+              init_dwarf_work <- glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}")
+              message(init_dwarf_work)
+              
               configfiles$SIDs <-  self$samples[a]
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
@@ -1016,13 +1057,25 @@ BeaverGandalf <- R6::R6Class(
                 status <- system(command = command,intern = T)
             })
             
-            self$run_log <- c(self$run_log,
-                              status,
-                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+             message(status)
             message(">> Done! Elapsed time : ",
                     round(time_usage["elapsed"],digits = 3),
                     "s")
+            list(
+              summary_report = c(
+                init_dwarf_work,
+                status,
+                glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+              
+            )
             }
+            )
+            # merge logs
+            self$run_log <- c(self$run_log,
+                              unlist(dwarf_results))
+            # release workers
+            
+            future::plan(future::sequential)
             
             message(glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
