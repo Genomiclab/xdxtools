@@ -1014,7 +1014,6 @@ BeaverGandalf <- R6::R6Class(
           message(">> Submition Over.")
           message(">> Start watching output files")
           message(">> Run: tail -f {out}")
-          
         }else{
         message(">> Run in Slurm cluster Mode，srun will be used")
         # Add sbatch support
