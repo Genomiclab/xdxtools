@@ -892,7 +892,7 @@ BeaverGandalf <- R6::R6Class(
 #' @return \code{NULL} (prints a message to the console).
 #' @export
     gandalf_info = function() {
-      message(">>> BeaverGandalf:Hey,my dear friends!I will lead you throught the cold night of Middle-earth.")
+      message(">>> I am BeaverGandalf.Today is {Sys.time()}. My dear friends!I will lead you throught the cold night of Middle-earth. ")
     },
 
 # 从temp文件夹move文件到运行目录下
@@ -990,6 +990,7 @@ BeaverGandalf <- R6::R6Class(
 #' used by Snakemake or other workflow management tools to execute the pipeline.
 #'
 #' @usage \method{gandalf_make_config}{BeaverGandalf}()
+#' @param returnData retrun the config list when True,default as False
 #'
 #' @return A named list containing the configuration parameters written to the YAML file.
 #'
@@ -1003,7 +1004,7 @@ BeaverGandalf <- R6::R6Class(
 #'   directories for analysis results, QC, and intermediate files.
 #'
 
-    gandalf_make_config = function(){
+    gandalf_make_config = function(returnData = FALSE){
       
       yaml_config_list <- list(
         Mode = self$Mode,
@@ -1078,8 +1079,9 @@ BeaverGandalf <- R6::R6Class(
       fs::dir_create(self$selfconfig)
       yaml::write_yaml(yaml_config_list,
                        file = self$yaml_file)
-      return(yaml_config_list)
-      
+      if (returnData){
+        return(yaml_config_list)
+      }
     },
     
 # 任务流程函数，实际运行的任务
@@ -1193,27 +1195,34 @@ BeaverGandalf <- R6::R6Class(
         # read & write job yaml files
         for (i in 1:nrow(task_df)){
           if (task_df$steps[i] == "step1"){
-            message(">> Run in Step 1")
+            message(">> [",Sys.time(),"] Run in Step 1")
             self$run_log <- c(self$run_log,
-                              ">> Run in Step 1")
+                              glue::glue(">> [{Sys.time()}] Run in Step 1"))
             command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
             job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
             job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
             new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],".yaml")
             yaml::write_yaml(job_yaml,
                              new_job_config)
-            status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
+            time_usage <- system.time({
+              status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
+            })
+            
             self$run_log <- c(self$run_log,
-                              status)
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
           }else{
             message(">> Run by per-sample in Step 2 and Step 3")
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
             for (a in 1:length(self$samples)){
-              message(glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              message(glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
               self$run_log <- c(self$run_log,
-                                glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+                                glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
               configfiles$SIDs <-  self$samples[a]
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
@@ -1224,23 +1233,37 @@ BeaverGandalf <- R6::R6Class(
               new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],"_",self$samples[a],".yaml")
               yaml::write_yaml(job_yaml,
                                new_job_config)
-              status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
-              self$run_log <- c(self$run_log,
-                                status)
+              time_usage <- system.time({
+               status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
+            })
+            
+            self$run_log <- c(self$run_log,
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
             }
             
-            message(glue::glue(">> Aggather the Results from Step {i}"))
+            message(glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
-                              glue::glue(">> Aggather the Results from Step {i}"))
+                              glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
             job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
             job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
             new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],".yaml")
             yaml::write_yaml(job_yaml,
                              new_job_config)
-            status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
+            time_usage <- system.time({
+               status <- system(command = glue::glue("kubectl apply -f {new_job_config}"),intern = T)
+            })
+            
             self$run_log <- c(self$run_log,
-                              status)
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
             
           }
           }
@@ -1249,39 +1272,61 @@ BeaverGandalf <- R6::R6Class(
         message(">> Run in container Mode")
         for (i in 1:nrow(task_df)){
           if (task_df$steps[i] == "step1"){
-            message(">> Run in Step 1")
+            message(glue::glue(">> [{Sys.time()}] Run in Step 1"))
             self$run_log <- c(self$run_log,
-                              ">> Run in Step 1")
+                              glue::glue(">> [{Sys.time()}] Run in Step 1"))
             command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
-            status <- system(command = command,intern = T)
+            
+            time_usage <- system.time({
+               status <- system(command = command,intern = T)
+            })
+            
             self$run_log <- c(self$run_log,
-                              status)
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
           }else{
             message(">> Run by per-sample in Step 2 and Step 3")
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
             for (a in 1:length(self$samples)){
-              message(glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              message(glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
               self$run_log <- c(self$run_log,
-                                glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+                                glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
               configfiles$SIDs <-  self$samples[a]
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
                                new_yaml_config)
               command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config}")
               message(command)
-              status <- system(command = command,intern = T)
-              self$run_log <- c(self$run_log,
-                                status)
+              time_usage <- system.time({
+                status <- system(command = command,intern = T)
+            })
+            
+            self$run_log <- c(self$run_log,
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
             }
-            message(glue::glue(">> Aggather the Results from Step {i}"))
+            message(glue::glue(">>  [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
-                              glue::glue(">> Aggather the Results from Step {i}"))
+                              glue::glue(">>  [{Sys.time()}]Aggather the Results from Step {i}"))
             command <- glue::glue("{snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
-            status <- system(command = command,intern = T)
+            time_usage <- system.time({
+                status <- system(command = command,intern = T)
+            })
+            
             self$run_log <- c(self$run_log,
-                              status)
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
           }
         }
       }else{
@@ -1318,39 +1363,62 @@ BeaverGandalf <- R6::R6Class(
         # sbatch --ntasks=1 --cpus-per-task=1 --mem=16G  --partition=normal --output=my_output_%j.out --error=my_error_%j.err --wrap="conda run -n base Rscript workflow.R"
         for (i in 1:nrow(task_df)){
           if (task_df$steps[i] == "step1"){
-            message(">> Run in Step 1")
+            message(glue::glue(">> [{Sys.time()}] Run in Step 1"))
             self$run_log <- c(self$run_log,
-                              ">> Run in Step 1")
+                              glue::glue(">> [{Sys.time()}] Run in Step 1"))
             command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
-            status <- system(command = command,intern = T)
+             time_usage <- system.time({
+                status <- system(command = command,intern = T)
+            })
+            
             self$run_log <- c(self$run_log,
-                              status)
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
+            
           }else{
             message(">> Run by per-sample in Step 2 and Step 3")
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
             for (a in 1:length(self$samples)){
-              message(glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+              message(glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
               self$run_log <- c(self$run_log,
-                                glue::glue(">> Processing sample {a}/{length(self$samples)} in step {i}"))
+                                glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
               configfiles$SIDs <-  self$samples[a]
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
                                new_yaml_config)
               command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config}")
-              status <- system(command = command,intern = T)
-              self$run_log <- c(self$run_log,
-                                status)
+              
+              time_usage <- system.time({
+                status <- system(command = command,intern = T)
+            })
+            
+            self$run_log <- c(self$run_log,
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
             }
             
-            message(glue::glue(">> Aggather the Results from Step {i}"))
+            message(glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
-                              glue::glue(">> Aggather the Results from Step {i}"))
+                              glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
-            status <- system(command = command,intern = T)
+            time_usage <- system.time({
+                status <- system(command = command,intern = T)
+            })
+            
             self$run_log <- c(self$run_log,
-                              status)
+                              status,
+                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+            message(">> Done! Elapsed time : ",
+                    round(time_usage["elapsed"],digits = 3),
+                    "s")
             
           }
         }

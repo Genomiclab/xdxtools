@@ -484,9 +484,16 @@ A character vector containing the paths of all created directories.
 \if{latex}{\out{\hypertarget{method-BeaverGandalf-gandalf_make_config}{}}}
 \subsection{Method \code{gandalf_make_config()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BeaverGandalf$gandalf_make_config()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BeaverGandalf$gandalf_make_config(returnData = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{returnData}}{retrun the config list when True,default as False}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Details}{
 \itemize{
 \item The method collects all relevant parameters from the BeaverGandalf object,
