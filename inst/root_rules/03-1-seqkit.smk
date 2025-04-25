@@ -12,5 +12,5 @@ rule seqkit:
   threads:6
   shell:
     """
-    seqkit stat  -a -j {threads} -T -b {input.fastq_R1} {input.fastq_R2} {input.trim_R1} {input.trim_R1} > {params.stat}
+    seqkit stat  -a -j {threads} -T -b {input.fastq_R1} {input.fastq_R2} {input.trim_R1} {input.trim_R2} > {params.stat}
     """

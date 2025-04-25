@@ -115,7 +115,6 @@ coverage_df %>%
   as.data.frame() %>%
   tibble::rownames_to_column("sampleid") %>%
   dplyr::relocate(sampleid) %>%
-  dplyr::left_join(qc_all,by = "sampleid") %>%
   openxlsx::write.xlsx(.,
                        paste0(fileout,"/CpG_coverage.xlsx"))
 
