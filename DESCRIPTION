@@ -1,6 +1,6 @@
 Package: beaverdown2
 Title: Beaverdown2
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     person("Yanhua", "Zheng", , "zyh3084989256@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-1103-9579"))
