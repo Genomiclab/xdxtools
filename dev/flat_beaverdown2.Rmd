@@ -1328,7 +1328,7 @@ BeaverGandalf <- R6::R6Class(
                 ))
             progressr::with_progress({
               # 初始化进度条（总数等于任务数）
-              p <- progressr::progressor(steps = length(self$samples))
+              p <- progressr::progressor(steps = length(self$samples) * 2)
               dwarf_results <- furrr::future_map(1:length(self$samples), 
                                                  function(a){
               init_dwarf_work <- glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}")
@@ -1447,7 +1447,7 @@ BeaverGandalf <- R6::R6Class(
                 ))
             progressr::with_progress({
               # 初始化进度条（总数等于任务数）
-              p <- progressr::progressor(steps = length(self$samples))
+              p <- progressr::progressor(steps = length(self$samples)  * 2)
             dwarf_results <- furrr::future_map(1:length(self$samples), function(a){
               init_dwarf_work <- glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}")
               p(message = init_dwarf_work) 
