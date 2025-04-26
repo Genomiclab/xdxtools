@@ -511,7 +511,7 @@ BeaverGandalf <- R6::R6Class(
 #' @return \code{NULL} (prints a message to the console).
 #' @export
     gandalf_info = function() {
-      message(">>> I am BeaverGandalf.Today is {Sys.time()}. My dear friends!I will lead you throught the cold night of Middle-earth. ")
+      message(glue::glue(">>> I am BeaverGandalf.Today is {Sys.time()}. My dear friends!I will lead you throught the cold night of Middle-earth. "))
     },
 
 # 从temp文件夹move文件到运行目录下
@@ -719,6 +719,8 @@ BeaverGandalf <- R6::R6Class(
 #' @param use_sbatch \code{logical} Whether to use sbatch to submit a job or use srun in FALSE
 #' @param cpus the cpu cores used in the 3 steps, default as 20,40,10
 #' @param mem the mem used in the 3 steps,default as "100G","400G","400G"
+#' @param dwarf_workers the Parallel number in Step 2 and Step 3,default as 1.
+#' 
 #' @return \code{NULL} (executes the workflow and logs the process).
 #'
 #' @details
@@ -736,7 +738,9 @@ BeaverGandalf <- R6::R6Class(
                             partition = "amd_512",
                             use_sbatch = F,
                             cpus = c("20","40","10"),
-                            mem = c("100G","400G","400G")){
+                            mem = c("100G","400G","400G"),
+                            dwarf_workers = 1){
+      require("future")
       message(">> Configuring cpu paramters.")
       if (length(cpus) > 3){
         message(">> Too much steps,use the first 3 steps.")
@@ -762,6 +766,22 @@ BeaverGandalf <- R6::R6Class(
         mem <- c(mem,"400G")
       }else {
         message(">> Plan for mem usage created.")
+      }
+      
+      # processing dwarf workers used in future package Parallel processing
+      
+      max_dwarf_workfers <- parallel::detectCores()
+      if (dwarf_workers < 1 | !is.numeric(dwarf_workers)){
+        dwarf_workers <- 1
+      }
+      
+      if (dwarf_workers <= max_dwarf_workfers & dwarf_workers > 1){
+        message(glue::glue(">> {dwarf_workers} dwarf_workers are in call.Parallel processing is enable."))
+      }else if (dwarf_workers == 1) {
+        message(">> 1 dwarf_worker is in call.Sequential processing is used.")
+      }else{
+        message(glue::glue(">> Too many dwarf_workers are request. Only {max_dwarf_workfers} dwarf_workers are in call.Parallel processing is enable."))
+        dwarf_workers <- max_dwarf_workfers
       }
       
       if (self$PDX_pipeline){
@@ -811,13 +831,16 @@ BeaverGandalf <- R6::R6Class(
       
       if (enigent %in% "k8s"){
         message(glue::glue(">> configure job files ... "))
+        
         # read & write job yaml files
+        # in future : implement of ClusterFunctions for Docker from batchtools package in https://mllg.github.io/batchtools/reference/makeClusterFunctionsDocker
+        
         for (i in 1:nrow(task_df)){
           if (task_df$steps[i] == "step1"){
             message(">> [",Sys.time(),"] Run in Step 1")
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}] Run in Step 1"))
-            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
+            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
             job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
             new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],".yaml")
@@ -838,6 +861,7 @@ BeaverGandalf <- R6::R6Class(
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
+            # in future: use future framework to doParallel
             for (a in 1:length(self$samples)){
               message(glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
               self$run_log <- c(self$run_log,
@@ -846,7 +870,7 @@ BeaverGandalf <- R6::R6Class(
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
                                new_yaml_config)
-              command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config}")
+              command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
               job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
               job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
               new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],"_",self$samples[a],".yaml")
@@ -867,7 +891,7 @@ BeaverGandalf <- R6::R6Class(
             message(glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
-            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
+            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
             job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
             new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],".yaml")
@@ -894,7 +918,7 @@ BeaverGandalf <- R6::R6Class(
             message(glue::glue(">> [{Sys.time()}] Run in Step 1"))
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}] Run in Step 1"))
-            command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
+            command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             
             time_usage <- system.time({
                status <- system(command = command,intern = T)
@@ -911,31 +935,61 @@ BeaverGandalf <- R6::R6Class(
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
-            for (a in 1:length(self$samples)){
-              message(glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
-              self$run_log <- c(self$run_log,
-                                glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
+            
+            # use future Parallel framework 
+            future::plan(future::multisession, workers = dwarf_workers)
+            progressr::handlers(global = TRUE)
+            progressr::handlers(
+              progressr::handler_progress(
+                format = ":eta [:bar] :percent | :message", 
+                clear = FALSE, 
+                show_after = 0
+                ))
+            progressr::with_progress({
+              # 初始化进度条（总数等于任务数）
+              p <- progressr::progressor(steps = length(self$samples) * 2)
+              dwarf_results <- furrr::future_map(1:length(self$samples), 
+                                                 function(a){
+              init_dwarf_work <- glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}")
+              p(message = init_dwarf_work) 
               configfiles$SIDs <-  self$samples[a]
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
                                new_yaml_config)
-              command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config}")
+              command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
               message(command)
               time_usage <- system.time({
                 status <- system(command = command,intern = T)
             })
             
+            #message(status)
+            # 生成完成消息并追加到进度条
+              finish_msg <- glue::glue(
+      ">> Sample {a} done | ",
+      "Time: {round(time_usage['elapsed'], 3)}s | ",
+      "Status: {status}"  # 简化状态输出
+    )
+            p(message = finish_msg)  # 再次更新进度条（可选，根据需求调整频次）
+            list(
+              summary_report = c(
+                init_dwarf_work,
+                status,
+                glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+              
+            )
+            })
+            })
+            # merge logs
             self$run_log <- c(self$run_log,
-                              status,
-                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
-            message(">> Done! Elapsed time : ",
-                    round(time_usage["elapsed"],digits = 3),
-                    "s")
-            }
+                              unlist(dwarf_results))
+            # release workers
+            
+            future::plan(future::sequential)
+            
             message(glue::glue(">>  [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
                               glue::glue(">>  [{Sys.time()}]Aggather the Results from Step {i}"))
-            command <- glue::glue("{snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
+            command <- glue::glue("{snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             time_usage <- system.time({
                 status <- system(command = command,intern = T)
             })
@@ -960,7 +1014,7 @@ BeaverGandalf <- R6::R6Class(
             "library(beaverdown2)",
             "library(dplyr)",
             glue::glue("BeaverGandalf <- readRDS('{self$logsummary}/workflow.RDS')"),
-            "BeaverGandalf$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F,cpus = c('40','40','40'),mem = c('400G','400G','400G'),partition = '{partition}')"
+            "BeaverGandalf$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F,cpus = c('40','40','40'),mem = c('400G','400G','400G'),partition = '{partition}',dwarf_workers = 3)"
           )
           rfile <- paste0(self$logsummary,
                                 "/workflow.R")
@@ -968,14 +1022,13 @@ BeaverGandalf <- R6::R6Class(
                      rfile)
           out <- paste0(self$logsummary,"/beaverflow.out")
           err <- paste0(self$logsummary,"/beaverflow.err")
-          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=40 --mem=400G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
+          sbatch_command <- glue::glue("sbatch --ntasks=1 --cpus-per-task=43 --mem=400G  --partition={partition} --output={out} --error={err} --wrap='conda run -n base Rscript {rfile}'")
           # 运行 sbatch 提交
           message(">> Submitting Jobs by sbatch")
           system(command = sbatch_command)
           message(">> Submition Over.")
           message(">> Start watching output files")
           message(">> Run: tail -f {out}")
-          
         }else{
         message(">> Run in Slurm cluster Mode，srun will be used")
         # Add sbatch support
@@ -985,7 +1038,7 @@ BeaverGandalf <- R6::R6Class(
             message(glue::glue(">> [{Sys.time()}] Run in Step 1"))
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}] Run in Step 1"))
-            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file}")
+            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
              time_usage <- system.time({
                 status <- system(command = command,intern = T)
             })
@@ -1002,32 +1055,60 @@ BeaverGandalf <- R6::R6Class(
             self$run_log <- c(self$run_log,
                               ">> Run by per-sample in Step 2 and Step 3")
             configfiles <- yaml::read_yaml(self$yaml_file)
-            for (a in 1:length(self$samples)){
-              message(glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
-              self$run_log <- c(self$run_log,
-                                glue::glue(">> [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}"))
+            # use future framework
+            future::plan(future::multisession, workers = dwarf_workers)
+            progressr::handlers(global = TRUE)
+            progressr::handlers(
+              progressr::handler_progress(
+                format = ":eta [:bar] :percent | :message", 
+                clear = FALSE, 
+                show_after = 0
+                ))
+            progressr::with_progress({
+              # 初始化进度条（总数等于任务数）
+              p <- progressr::progressor(steps = length(self$samples)  * 2)
+            dwarf_results <- furrr::future_map(1:length(self$samples), function(a){
+              init_dwarf_work <- glue::glue(">>  [{Sys.time()}]Processing sample {a}/{length(self$samples)} in step {i}")
+              p(message = init_dwarf_work) 
+              
               configfiles$SIDs <-  self$samples[a]
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
                                new_yaml_config)
-              command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config}")
+              command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
               
               time_usage <- system.time({
                 status <- system(command = command,intern = T)
             })
             
+            #message(status)
+            # 生成完成消息并追加到进度条
+              finish_msg <- glue::glue(
+      ">> Sample {a} done | ",
+      "Time: {round(time_usage['elapsed'], 3)}s | ",
+      "Status: {status}"  # 简化状态输出
+    )
+            p(message = finish_msg)  # 再次更新进度条（可选，根据需求调整频次）
+            list(
+              summary_report = c(
+                init_dwarf_work,
+                status,
+                glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
+              
+            )
+            })
+            })
+            # merge logs
             self$run_log <- c(self$run_log,
-                              status,
-                              glue::glue(">> Done! Elapsed time:{round(time_usage['elapsed'],digits = 3)}s"))
-            message(">> Done! Elapsed time : ",
-                    round(time_usage["elapsed"],digits = 3),
-                    "s")
-            }
+                              unlist(dwarf_results))
+            # release workers
+            
+            future::plan(future::sequential)
             
             message(glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
-            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file}")
+            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             time_usage <- system.time({
                 status <- system(command = command,intern = T)
             })

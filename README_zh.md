@@ -200,6 +200,22 @@ gandalf_RRBS$gandalf_aggResult(resultType = "matrix", method = "zip")
 update_gandalf(gandalf_RRBS)
 ```
 
+### **!!!注意，当在bash中调用时**
+
+``` bash
+
+export R_PROGRESSR_ENABLE=TRUE
+
+# in Rscript
+
+Rscript script.R > script.log 2>&1 &
+
+#or in R
+
+R -e "..." > script.log 2>&1 &
+ 
+```
+
 ## **支持与反馈**
 
 如果在使用过程中遇到问题，请随时通过以下方式联系开发者：

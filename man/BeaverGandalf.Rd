@@ -530,7 +530,8 @@ A named list containing the configuration parameters written to the YAML file.
   partition = "amd_512",
   use_sbatch = F,
   cpus = c("20", "40", "10"),
-  mem = c("100G", "400G", "400G")
+  mem = c("100G", "400G", "400G"),
+  dwarf_workers = 1
 )}\if{html}{\out{</div>}}
 }
 
@@ -552,6 +553,8 @@ A named list containing the configuration parameters written to the YAML file.
 \item{\code{cpus}}{the cpu cores used in the 3 steps, default as 20,40,10}
 
 \item{\code{mem}}{the mem used in the 3 steps,default as "100G","400G","400G"}
+
+\item{\code{dwarf_workers}}{the Parallel number in Step 2 and Step 3,default as 1.}
 }
 \if{html}{\out{</div>}}
 }

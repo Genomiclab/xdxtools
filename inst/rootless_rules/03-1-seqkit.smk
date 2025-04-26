@@ -12,5 +12,5 @@ rule seqkit:
   threads:6
   shell:
     """
-    conda run -n seqkit seqkit stat  -a -j {threads} -T -b {input.fastq_R1} {input.fastq_R2} {input.trim_R1} {input.trim_R1} > {params.stat}
+    conda run -n seqkit seqkit stat  -a -j {threads} -T -b {input.fastq_R1} {input.fastq_R2} {input.trim_R1} {input.trim_R2} > {params.stat}
     """
