@@ -214,6 +214,23 @@ gandalf_RRBS$gandalf_aggResult(resultType = "matrix", method = "zip")
 update_gandalf(gandalf_RRBS)
 ```
 
+### **!!!CAUTION in Using BASH**
+
+ 
+``` bash
+
+export R_PROGRESSR_ENABLE=TRUE
+
+# in Rscript
+
+Rscript script.R > script.log 2>&1 &
+
+#or in R
+
+R -e "..." > script.log 2>&1 &
+ 
+```
+
 ## **Support and Feedback**
 
 If you encounter any issues during usage, please contact the developer via the following methods:

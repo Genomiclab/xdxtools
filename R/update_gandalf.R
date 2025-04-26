@@ -17,7 +17,7 @@
 #' - It initializes a new \code{BeaverGandalf} object with these parameters.
 #' - The \code{new_userid_always} parameter is set to \code{FALSE} to reuse the existing user ID.
 #' - This function is useful for restarting or updating the workflow while preserving the original settings.
-#' @noRd
+#' @export
 update_gandalf <- function(gandalfthegray){
   gandalfthewhite <- BeaverGandalf$new(
     Mode = gandalfthegray$Mode,
@@ -25,7 +25,7 @@ update_gandalf <- function(gandalfthegray){
     species2 = gandalfthegray$species2,
     uploadfile = gandalfthegray$uploadfile, # 是一个表格，由上传功能自动生成
     pdata = gandalfthegray$pdata, # 是一个表格（上传送样表，需要sampleid和inline_barcode_...两列）
-    workflow_endpoint = as.character(sum(gandalf_RRBS$workflow_endpoint)), # pipeline 的终点，从前端输入
+    workflow_endpoint = as.character(sum(gandalfthegray$workflow_endpoint)), # pipeline 的终点，从前端输入
     user_email = gandalfthegray$user_email,
     new_userid_always = F,
     userid = gandalfthegray$userid

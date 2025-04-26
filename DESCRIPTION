@@ -25,6 +25,7 @@ Imports:
     methrix,
     openssl,
     parallel,
+    progressr,
     ps,
     R6,
     readr,
