@@ -455,6 +455,7 @@ test_that("file_agg works", {
 #' @field GCbias Directories for methrix H5 and GC bias results.
 #' @field userspace The root directory for user workflows.
 #' @field genomeAnno the shortname of Genomes used in the BSseq Pipelines
+#' @field group_levels the num of group_levels
 #' @method initialize initialize 
 #' @method gandalf_info gandalf_info 
 #' @method gandalf_fastq_move gandalf_fastq_move 
@@ -522,6 +523,7 @@ BeaverGandalf <- R6::R6Class(
     chrs = NULL,
     userspace = "userspace",fastqDir = NULL, PDX_pipeline = NULL,
     user_email = NULL,init_log = NULL,run_log = NULL,
+    group_levels = NULL,
 
 #' @param Mode \code{character} The mode of the pipeline (e.g., "RRBS", "BSSEQ", "RNASEQ").
 #' @param suffix1 \code{character} Suffix for the first read of paired-end FASTQ files (default: "_R1.fastq.gz").
@@ -832,7 +834,8 @@ BeaverGandalf <- R6::R6Class(
         pdata <- data.frame(
           sampleid = samples_paired
         ) %>%
-        dplyr::mutate(inline_barcode_sequence = NA)
+        dplyr::mutate(inline_barcode_sequence = NA,
+                      sample_group = NA)
       }
       
       if (!("sampleid" %in% colnames(pdata))){
@@ -843,6 +846,11 @@ BeaverGandalf <- R6::R6Class(
         pdata <- pdata %>% 
           dplyr::mutate(inline_barcode_sequence = NA)
       }
+      if (!("sample_group" %in% colnames(pdata))){
+        pdata <- pdata %>% 
+          dplyr::mutate(sample_group = NA)
+      }
+      
       
       pdata_filter <- pdata %>% 
         dplyr::filter(sampleid %in% samples_paired)
@@ -850,8 +858,26 @@ BeaverGandalf <- R6::R6Class(
       self$pdata <- pdata_filter
       
       message(">> Check Phenodata ...")
-      # adapter calculation
+      # group levels calculation
+      sample_group_levels <- levels(factor(pdata_filter[["sample_group"]])) %>% 
+        length()
       
+      if (sample_group_levels == 0) {
+        message(">> sample_group information is not available")
+        
+      } else if (sample_group_levels == 1)  {
+        message(">> 1 group level is found")
+        
+      }else{
+        message(glue::glue(
+          ">> {sample_group_levels} group levels are detected,including: {paste(levels(factor(pdata_filter[['sample_group']])),collapse =',')} "
+        ))
+       
+      }
+      
+      self$group_levels <- sample_group_levels
+      
+      # adapter calculation
       trimSeq1 = rep(adapter1, length(samples_paired))
       trimSeq2 = rep(adapter2, length(samples_paired))
       for (i in 1:length(samples_paired)){
@@ -991,6 +1017,7 @@ BeaverGandalf <- R6::R6Class(
 #'
 #' @usage \method{gandalf_make_config}{BeaverGandalf}()
 #' @param returnData retrun the config list when True,default as False
+#' @param writePdata write pdata into config folder as .excel,default as True
 #'
 #' @return A named list containing the configuration parameters written to the YAML file.
 #'
@@ -1004,7 +1031,8 @@ BeaverGandalf <- R6::R6Class(
 #'   directories for analysis results, QC, and intermediate files.
 #'
 
-    gandalf_make_config = function(returnData = FALSE){
+    gandalf_make_config = function(returnData = FALSE,
+                                   writePdata = TRUE){
       
       yaml_config_list <- list(
         Mode = self$Mode,
@@ -1071,7 +1099,8 @@ BeaverGandalf <- R6::R6Class(
         methrixh5 = self$methrixh5,
         GCbias = self$GCbias,
         user_email = self$user_email,
-        PDX_pipeline = self$PDX_pipeline
+        PDX_pipeline = self$PDX_pipeline,
+        group_levels = self$group_levels
       )
       message(">> writing config files ...")
       self$run_log <- c(self$run_log,
@@ -1079,6 +1108,13 @@ BeaverGandalf <- R6::R6Class(
       fs::dir_create(self$selfconfig)
       yaml::write_yaml(yaml_config_list,
                        file = self$yaml_file)
+      if (writePdata){
+        message(">> writing pdata tables ...")
+        self$run_log <- c(self$run_log,
+                        ">> writing pdata tables ...")
+        openxlsx::write.xlsx(self$pdata,
+                             paste0(self$selfconfig,"/pdata.xlsx"))
+      }
       if (returnData){
         return(yaml_config_list)
       }

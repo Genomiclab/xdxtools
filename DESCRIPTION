@@ -24,6 +24,7 @@ Imports:
     magrittr,
     methrix,
     openssl,
+    openxlsx,
     parallel,
     progressr,
     ps,
