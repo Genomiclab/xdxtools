@@ -155,6 +155,8 @@ run on different computing environments (e.g., Kubernetes, Slurm).
 \item{\code{userspace}}{The root directory for user workflows.}
 
 \item{\code{genomeAnno}}{the shortname of Genomes used in the BSseq Pipelines}
+
+\item{\code{group_levels}}{the num of group_levels}
 }
 \if{html}{\out{</div>}}
 }
@@ -484,13 +486,15 @@ A character vector containing the paths of all created directories.
 \if{latex}{\out{\hypertarget{method-BeaverGandalf-gandalf_make_config}{}}}
 \subsection{Method \code{gandalf_make_config()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BeaverGandalf$gandalf_make_config(returnData = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BeaverGandalf$gandalf_make_config(returnData = FALSE, writePdata = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{returnData}}{retrun the config list when True,default as False}
+
+\item{\code{writePdata}}{write pdata into config folder as .excel,default as True}
 }
 \if{html}{\out{</div>}}
 }
