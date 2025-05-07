@@ -20,6 +20,7 @@ conda create -n seqkit -c bioconda seqkit  -y
 conda create -n seqtk -c bioconda seqtk  -y
 conda create -n trim_galore -c bioconda trim-galore  -y
 conda create -n picard -c bioconda picard -y
+conda create -n rmats rmats -y
 conda install -n base r-ragg -y
 conda install -n base r-tidyverse -y
 conda install -n base cmake -y
