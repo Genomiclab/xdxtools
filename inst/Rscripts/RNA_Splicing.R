@@ -143,7 +143,7 @@ for (i in 1:type_length){
       writeLines(.,
                  con = glue::glue("{runtime_dir}/b2.txt") )
     command <- glue::glue(
-      "conda run -n rmats rmats.py --b1 {runtime_dir}/b1.txt --b2 {runtime_dir}/b2.txt --gtf {args$gtf} -t paired --readLength {seq_length} --variable-read-length --nthread {cores} --od {runtime_dir} --tmp{runtime_tempdir}"
+      "conda run -n rmats rmats.py --b1 {runtime_dir}/b1.txt --b2 {runtime_dir}/b2.txt --gtf {args$gtf} -t paired --readLength {seq_length} --variable-read-length --nthread {cores} --od {runtime_dir} --tmp {runtime_tempdir}"
       )
     status <- system(command = command,
                      intern = T)
