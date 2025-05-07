@@ -11,7 +11,7 @@ rule rnaseq_splicing :
     gtf=config["rnaseq_gtf"][config["species"].index(config["graft"])],
     log_marker=os.path.join(config["bsmapDir"], "RNASplicing","RNASplicing_success.txt"),
     log_dir=os.path.join(config["bsmapDir"], "RNASplicing") ,
-    pdxmode=(0 if config["PDX_pipeline"] == "no" else 1)
+    pdxmode=(0 if not config["PDX_pipeline"]  else 1)
   threads:20
   if config["group_levels"] >= 2 :
     shell:
