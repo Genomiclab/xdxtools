@@ -448,35 +448,29 @@ BeaverGandalf <- R6::R6Class(
       self$uploadfile <- uploadfile %>% 
         dplyr::mutate(sampleid = samples) %>% 
         dplyr::filter(sampleid %in% samples_paired)
-      
-      if (ncol(pdata) == 0){
+      message(">> Check Phenodata ...")
+      # check pdata data.frame and its cols
+      if (ncol(pdata) == 0 |!("sampleid" %in% colnames(pdata)) ){
         pdata <- data.frame(
           sampleid = samples_paired
         ) %>%
         dplyr::mutate(inline_barcode_sequence = NA,
                       sample_group = NA)
-      }
-      
-      if (!("sampleid" %in% colnames(pdata))){
-        pdata <- pdata %>% 
-          dplyr::mutate(sampleid = samples_paired)
-      }
-      if (!("inline_barcode_sequence" %in% colnames(pdata))){
+      }else {
+        if (!("inline_barcode_sequence" %in% colnames(pdata))){
         pdata <- pdata %>% 
           dplyr::mutate(inline_barcode_sequence = NA)
-      }
-      if (!("sample_group" %in% colnames(pdata))){
+        }
+        if (!("sample_group" %in% colnames(pdata))){
         pdata <- pdata %>% 
           dplyr::mutate(sample_group = NA)
       }
-      
+      }
       
       pdata_filter <- pdata %>% 
         dplyr::filter(sampleid %in% samples_paired)
       
       self$pdata <- pdata_filter
-      
-      message(">> Check Phenodata ...")
       # group levels calculation
       sample_group_levels <- levels(factor(pdata_filter[["sample_group"]])) %>% 
         length()

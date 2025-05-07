@@ -26,7 +26,8 @@ rule all:
     os.path.join(config["outDir_betaM"], "matrix_count.txt"),
     os.path.join(config["outDir_betaM"], "matrix_norm.txt"),
     os.path.join(config["SID_log"], "step2_success.txt"),
-    os.path.join(config["qc_summary"],"qc_summary.txt")
+    os.path.join(config["qc_summary"],"qc_summary.txt"),
+    os.path.join(config["bsmapDir"], "RNASplicing","RNASplicing_success.txt")
 
 # 第一次QC
 include: "rules/01fastqcAtfirst.smk"
@@ -57,7 +58,11 @@ include:"rules/05-3-qualimap.smk"
 
 include:"rules/rnaseq_htseq.smk"
 
-# construct matrix 
+# RNA Splicing
+
+include:"rules/rnaseq_splicing.smk"
+
+# construct matrix
 
 include:"rules/rnaseq_matrix.smk"
 
@@ -65,8 +70,10 @@ include:"rules/rnaseq_matrix.smk"
 
 include: "rules/rnaseq_step2_checker.smk"
 
-# qc summary 
+# qc summary
 
 include:"rules/rna_qc_summary.smk"
+
+
 
 
