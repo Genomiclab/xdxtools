@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 
 # xdxtools: A Bioinformatics Workflow Management Package for DXD data
 
-[中文](https://github.com/rainoffallingstar/xdxtools/blob/master/README_zh.md) ｜ [NotebookLLM](https://notebooklm.google.com/notebook/67b24f6c-2f7c-40b4-9019-c68f6b391948/audio)
+[中文](https://github.com/Genomiclab/xdxtools/blob/master/README_zh.md) ｜ [NotebookLLM](https://notebooklm.google.com/notebook/67b24f6c-2f7c-40b4-9019-c68f6b391948/audio)
 
 ## Introduction
 
@@ -68,7 +68,7 @@ pak::pak('CompEpigen/methrix')
 pak::pak('CompEpigen/scMethrix')
 pak::pak("BiocParallel")
 pak::pak("NKI-GCF/XenofilteR")
-pak::pak("rainoffallingstar/xdxtools")
+pak::pak("Genomiclab/xdxtools")
 ```
 
 ### **Dependencies**
