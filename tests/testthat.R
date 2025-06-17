@@ -1,4 +1,4 @@
 library(testthat)
-library(beaverdown2)
+library(xdxtools)
 
-test_check("beaverdown2")
+test_check("xdxtools")

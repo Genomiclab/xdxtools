@@ -31,7 +31,7 @@ It supports different installation modes based on the detected engine (e.g., Doc
 The function performs the following steps:
 \enumerate{
 \item Creates a directory structure under \code{workflow_dir} with folders such as "config", "data", "envs", etc.
-\item Fetches runtime files (e.g., Snakefile) and R scripts from the \code{beaverdown2} package.
+\item Fetches runtime files (e.g., Snakefile) and R scripts from the \code{xdxtools} package.
 \item Installs required software packages using Conda, including Python environments and R packages.
 \item Configures the environment based on the detected engine type and user input.
 }
