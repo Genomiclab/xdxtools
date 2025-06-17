@@ -870,7 +870,7 @@ BeaverGandalf <- R6::R6Class(
             message(">> [",Sys.time(),"] Run in Step 1")
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}] Run in Step 1"))
-            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
+            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun} --cores all --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
             job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
             new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],".yaml")
@@ -900,7 +900,7 @@ BeaverGandalf <- R6::R6Class(
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
                                new_yaml_config)
-              command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
+              command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun} --cores all --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
               job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
               job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
               new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],"_",self$samples[a],".yaml")
@@ -921,7 +921,7 @@ BeaverGandalf <- R6::R6Class(
             message(glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
-            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
+            command <- glue::glue("cd /home/builduser/beaverflow && {snakemake_condaenv} snakemake {dryrun}  --cores all --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             job_yaml <- yaml::read_yaml(file = glue::glue("workflows/{job_idx}_step{i}.yaml"))
             job_yaml$spec$template$spec$containers[[1]]$command[3] <- command
             new_job_config <- paste0(self$selfconfig,"/job_",task_df$steps[i],".yaml")
@@ -948,7 +948,7 @@ BeaverGandalf <- R6::R6Class(
             message(glue::glue(">> [{Sys.time()}] Run in Step 1"))
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}] Run in Step 1"))
-            command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
+            command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --cores all --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             
             time_usage <- system.time({
                status <- system(command = command,intern = T)
@@ -986,7 +986,7 @@ BeaverGandalf <- R6::R6Class(
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
                                new_yaml_config)
-              command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
+              command <- glue::glue("{snakemake_condaenv} snakemake {dryrun} --cores all --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
               message(command)
               time_usage <- system.time({
                 status <- system(command = command,intern = T)
@@ -1019,7 +1019,7 @@ BeaverGandalf <- R6::R6Class(
             message(glue::glue(">>  [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
                               glue::glue(">>  [{Sys.time()}]Aggather the Results from Step {i}"))
-            command <- glue::glue("{snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
+            command <- glue::glue("{snakemake_condaenv} snakemake  {dryrun} --cores all --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             time_usage <- system.time({
                 status <- system(command = command,intern = T)
             })
@@ -1068,7 +1068,7 @@ BeaverGandalf <- R6::R6Class(
             message(glue::glue(">> [{Sys.time()}] Run in Step 1"))
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}] Run in Step 1"))
-            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
+            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --cores all --snakefile {workflow_idx}_step{i}.snakemake --configfile {self$yaml_file} --rerun-incomplete")
              time_usage <- system.time({
                 status <- system(command = command,intern = T)
             })
@@ -1105,7 +1105,7 @@ BeaverGandalf <- R6::R6Class(
               new_yaml_config <- paste0(self$selfconfig,"/",self$samples[a],".yaml")
               yaml::write_yaml(configfiles,
                                new_yaml_config)
-              command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake {dryrun} --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
+              command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake {dryrun} --cores all --snakefile {workflow_idx}_step{i}.snakemake --configfile {new_yaml_config} --rerun-incomplete")
               
               time_usage <- system.time({
                 status <- system(command = command,intern = T)
@@ -1138,7 +1138,7 @@ BeaverGandalf <- R6::R6Class(
             message(glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
             self$run_log <- c(self$run_log,
                               glue::glue(">> [{Sys.time()}]Aggather the Results from Step {i}"))
-            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
+            command <- glue::glue("srun -p {partition}  -N 1 -n 1 --cpus-per-task={task_df$cpus[i]} --mem={task_df$mem[i]} {snakemake_condaenv} snakemake  {dryrun} --cores all --snakefile {workflow_idx}_step{i}_checker.snakemake --configfile {self$yaml_file} --rerun-incomplete")
             time_usage <- system.time({
                 status <- system(command = command,intern = T)
             })

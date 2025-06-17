@@ -13,6 +13,7 @@ conda create -n star -c bioconda star -y
 conda create -n htseq -c bioconda htseq -y
 conda create -n bismark -c bioconda bismark -y
 conda install -n bismark -c bioconda samtools -y
+conda update -n bismark samtools -y
 conda create -n fastqc -c bioconda fastqc  -y
 conda create -n snakemake -c bioconda snakemake  -y
 conda create -n qualimap -c bioconda qualimap  -y
@@ -20,6 +21,7 @@ conda create -n seqkit -c bioconda seqkit  -y
 conda create -n seqtk -c bioconda seqtk  -y
 conda create -n trim_galore -c bioconda trim-galore  -y
 conda create -n picard -c bioconda picard -y
+conda create -n rmats rmats -y
 conda install -n base r-ragg -y
 conda install -n base r-tidyverse -y
 conda install -n base cmake -y
@@ -27,15 +29,15 @@ conda install -n base r-xml2 -y
 conda install -n base bioconductor-rhtslib -y
 conda install -n base r-magick -y
 conda install -n base r-rJava -y
-conda install -n base r-devtools
+conda install -n base r-devtools -y
 conda install -n base -c conda-forge freetype libcurl icu libjpeg-turbo libpng libtiff libxml2 pandoc -y
 conda run -n base R -e "options ('repos' = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/'));
 message('>> Check install status');
 installed <- installed.packages(); installed <- rownames(installed);
-pkg_install  <- function(pkg,installed = installed ){
+pakg_install  <- function(pkg,installed = installed ){
   pkg <- pkg[!(pkg %in% installed)]
   if (length(pkg) != 0){
-    pak::pak_install(pkg,upgrade = F,ask= FALSE, dependencies = NA)
+    pak::pkg_install(pkg,upgrade = F,ask= FALSE, dependencies = NA)
   }
 };
 message('>> Install pak');
@@ -44,7 +46,7 @@ if (!('pak' %in% installed)){
   repos = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/'))
   };
 message('>> Install library');
-  pkg_install(pkg = c('DT','shinyWidgets','shiny','bslib','optparse',
+  pakg_install(pkg = c('DT','shinyWidgets','shiny','bslib','optparse',
          'openxlsx','NOISeq','XML','Repitools',
                          'Rsamtools','rtracklayer','R6','reticulate',
                          'GSVA','graphite','igraph','ggraph','TCGAbiolinks',
