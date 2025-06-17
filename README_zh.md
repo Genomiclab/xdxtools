@@ -62,7 +62,7 @@ pak::pak('CompEpigen/methrix')
 pak::pak('CompEpigen/scMethrix')
 pak::pak("BiocParallel")
 pak::pak("NKI-GCF/XenofilteR")
-pak::pak("rainoffallingstar/xdxtools")
+pak::pak("Genomiclab/xdxtools")
 ```
 
 ### **安装依赖**
