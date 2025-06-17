@@ -3,6 +3,9 @@
 
 # xdxtools: A Bioinformatics Workflow Management Package for DXD data
 
+[![Docker build xdxtools
+image](https://github.com/Genomiclab/xdxtools/actions/workflows/build_xdxtools.yml/badge.svg)](https://github.com/Genomiclab/xdxtools/actions/workflows/build_xdxtools.yml)
+
 [中文](https://github.com/Genomiclab/xdxtools/blob/master/README_zh.md)
 ｜
 [NotebookLLM](https://notebooklm.google.com/notebook/67b24f6c-2f7c-40b4-9019-c68f6b391948/audio)
