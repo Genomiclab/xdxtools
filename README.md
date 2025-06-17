@@ -1,20 +1,20 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Beaverdown2: A Bioinformatics Workflow Management Package
+# xdxtools: A Bioinformatics Workflow Management Package for DXD data
 
-[中文](https://github.com/rainoffallingstar/beaverdown2/blob/master/README_zh.md)
+[中文](https://github.com/rainoffallingstar/xdxtools/blob/master/README_zh.md)
 ｜
 [NotebookLLM](https://notebooklm.google.com/notebook/67b24f6c-2f7c-40b4-9019-c68f6b391948/audio)
 
 ## Introduction
 
-`Beaverdown2` is an R-based bioinformatics workflow management package
+`xdxtools` is an R-based bioinformatics workflow management package
 designed to simplify and automate complex bioinformatics analysis
 pipelines. It integrates R6 classes and the Snakemake workflow engine,
 supports multiple analysis modes (such as RRBS, WGBS, and RNAseq), and
 can run in various computing environments (e.g., Kubernetes, Slurm, and
-containerized environments). With `Beaverdown2`, users can easily
+containerized environments). With `xdxtools`, users can easily
 configure, manage, and execute bioinformatics analysis tasks, including
 support for PDX/CDX (Patient/Cancer Cell Line Derived Xenograft)
 analysis pipelines.
@@ -71,12 +71,12 @@ pak::pak('CompEpigen/methrix')
 pak::pak('CompEpigen/scMethrix')
 pak::pak("BiocParallel")
 pak::pak("NKI-GCF/XenofilteR")
-pak::pak("rainoffallingstar/beaverdown2")
+pak::pak("rainoffallingstar/xdxtools")
 ```
 
 ### **Dependencies**
 
-`Beaverdown2` requires the following dependencies:
+`xdxtools` requires the following dependencies:
 
 - R version 4.0 or higher
 
@@ -89,7 +89,7 @@ pak::pak("rainoffallingstar/beaverdown2")
 After installation, configure the workflow directory and environment by
 running:
 
-    library(Beaverdown2) 
+    library(xdxtools) 
 
     beaverflow_install(workflow_dir = "/path/to/your/workflow_dir", build_env = TRUE)
 
@@ -149,7 +149,7 @@ When `BeaverGandalf` is created, the result dirs will be created in the
 ### **Initialize Workflow**
 
 ``` r
-library(beaverdown2) 
+library(xdxtools) 
 
 # in detail
 
@@ -249,4 +249,4 @@ via the following methods:
 
 ## **License**
 
-`Beaverdown2` is licensed under the MIT License.
+`xdxtools` is licensed under the MIT License.

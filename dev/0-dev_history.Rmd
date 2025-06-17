@@ -14,14 +14,15 @@ All commands that you use to use when developing packages...
 ```{r description}
 # Describe your package
 fusen::fill_description(
-  pkg = here::here(),
+  pkg = getwd(),
   fields = list(
-    Title = "beaverdown2",
-    Description = "a beaver worker for dealing with container-driven snakemake events in R.",
+    Title = "xdxtools",
+    Description = "A Bioinformatics Workflow Management Package for DXD data.",
     `Authors@R` = c(
       person("Yanhua", "Zheng", email = "zyh3084989256@gmail.com", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-1103-9579"))
     )
-  )
+  ),
+  overwrite = TRUE
 )
 # Define License with use_*_license()
 usethis::use_mit_license("YanhuaZheng")

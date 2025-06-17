@@ -18,7 +18,7 @@
 #' @details
 #' The function performs the following steps:
 #' 1. Creates a directory structure under `workflow_dir` with folders such as "config", "data", "envs", etc.
-#' 2. Fetches runtime files (e.g., Snakefile) and R scripts from the `beaverdown2` package.
+#' 2. Fetches runtime files (e.g., Snakefile) and R scripts from the `xdxtools` package.
 #' 3. Installs required software packages using Conda, including Python environments and R packages.
 #' 4. Configures the environment based on the detected engine type and user input.
 #'
@@ -47,7 +47,7 @@ beaverflow_install <- function(workflow_dir = getwd(),
   beaver_unpack <- function(src,
                             dest){
     rscripts <- inst_path <- system.file(glue::glue("{src}"), 
-                                       package = "beaverdown2")
+                                       package = "xdxtools")
   rscripts_files <- list.files(path = rscripts,
                                full.names = F)
   package_rfiles <- paste0(rscripts,"/",rscripts_files)
@@ -128,7 +128,7 @@ beaverflow_install <- function(workflow_dir = getwd(),
       }
       if (answer2 == "yes"){
         conda_install <- system.file("install_script/miniconda_install.sh",
-                                    package = "beaverdown2")
+                                    package = "xdxtools")
         conda_script <- glue::glue("chmod +x {conda_install } && bash {conda_install } ")
         system(command = conda_script )
       }else{
@@ -139,7 +139,7 @@ beaverflow_install <- function(workflow_dir = getwd(),
       message(">> Good News! you seems to have a conda version READY to be used. ")
     }
       command_script <- system.file("install_script/beaverConda_pak_install.sh",
-                                    package = "beaverdown2")
+                                    package = "xdxtools")
       
       run_script <- glue::glue("export PATH={Sys.getenv('HOME')}/{condaType}/bin:$PATH && chmod +x {command_script} && bash {command_script} ")
       
@@ -175,7 +175,7 @@ beaverflow_install <- function(workflow_dir = getwd(),
     system(command = glue::glue("gunzip inst/pdx/homo_sapiens/{human_version}.fa.gz"))
     system(command = glue::glue("gunzip inst/rnaseq/homo_sapiens/{human_version}.ensGene.gtf.gz"))
     build_script <- system.file("install_script/build_genome.sh",
-                                package = "beaverdown2")
+                                package = "xdxtools")
     build_genome_command <- glue::glue("sed -i 's/hg38/{human_version}/g' {build_script} && chmod +x {build_script} && sbatch {build_script}")
     system(command = build_genome_command)
   }else{

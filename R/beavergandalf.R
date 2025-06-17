@@ -1041,7 +1041,7 @@ BeaverGandalf <- R6::R6Class(
                   file = paste0(self$logsummary,
                                 "/workflow.RDS"))
           rscript_temp <- c(
-            "library(beaverdown2)",
+            "library(xdxtools)",
             "library(dplyr)",
             glue::glue("BeaverGandalf <- readRDS('{self$logsummary}/workflow.RDS')"),
             "BeaverGandalf$gandalf2wars(dry_run = F,snakemake_condaenv = '{snakemake_condaenv_bk}',use_sbatch = F,cpus = c('40','40','40'),mem = c('400G','400G','400G'),partition = '{partition}',dwarf_workers = 3)"

@@ -13,13 +13,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Beaverdown2: A Bioinformatics Workflow Management Package
+# xdxtools: A Bioinformatics Workflow Management Package for DXD data
 
 [NotebookLLM](https://notebooklm.google.com/notebook/67b24f6c-2f7c-40b4-9019-c68f6b391948/audio)
 
 ## 简介
 
-`Beaverdown2` 是一个基于 R 的生物信息学工作流管理工具包，旨在简化和自动化复杂的生物信息学分析流程。它结合了 R6 类和 Snakemake 工作流引擎，支持多种分析模式（如 RRBS、WGBS 和 RNAseq），并能够运行在不同的计算环境中（如 Kubernetes、Slurm 和容器化环境）。通过 `Beaverdown2`，用户可以轻松配置、管理和执行生物信息学分析任务，同时支持 PDX/CDX（患者/细胞系来源异种移植）分析流程。
+`xdxtools` 是一个基于 R 的生物信息学工作流管理工具包，旨在简化和自动化复杂的生物信息学分析流程。它结合了 R6 类和 Snakemake 工作流引擎，支持多种分析模式（如 RRBS、WGBS 和 RNAseq），并能够运行在不同的计算环境中（如 Kubernetes、Slurm 和容器化环境）。通过 `xdxtools`，用户可以轻松配置、管理和执行生物信息学分析任务，同时支持 PDX/CDX（患者/细胞系来源异种移植）分析流程。
 
 ## 功能介绍
 
@@ -68,12 +68,12 @@ pak::pak('CompEpigen/methrix')
 pak::pak('CompEpigen/scMethrix')
 pak::pak("BiocParallel")
 pak::pak("NKI-GCF/XenofilteR")
-pak::pak("rainoffallingstar/beaverdown2")
+pak::pak("rainoffallingstar/xdxtools")
 ```
 
 ### **安装依赖**
 
-`Beaverdown2` 需要以下依赖项：
+`xdxtools` 需要以下依赖项：
 
 -   R 4.0 或更高版本
 
@@ -84,7 +84,7 @@ pak::pak("rainoffallingstar/beaverdown2")
 安装完成后，运行以下命令以配置工作流目录与环境：
 
 ```         
-library(Beaverdown2) 
+library(xdxtools) 
 beaverflow_install(workflow_dir = "/path/to/your/workflow_dir",build_env = T)
 ```
 
@@ -138,7 +138,7 @@ inst
 ### **初始化工作流**
 
 ``` r
-library(beaverdown2) 
+library(xdxtools) 
 
 # in detail
 
@@ -224,4 +224,4 @@ R -e "..." > script.log 2>&1 &
 
 ## **许可**
 
-`Beaverdown2` 采用 MIT 许可证。
+`xdxtools` 采用 MIT 许可证。
