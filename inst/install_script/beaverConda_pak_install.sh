@@ -32,6 +32,7 @@ conda install -n base r-rJava -y
 conda install -n base r-devtools -y
 conda install -n base r-gsmoothr -y
 conda install -n base bioconductor-rtracklayer -y
+conda install -n base bioconductor-rgraphviz -y
 conda install -n base -c conda-forge freetype libcurl icu libjpeg-turbo libpng libtiff libxml2 pandoc -y
 conda run -n base R -e "options ('repos' = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/'));
 message('>> Check install status');
