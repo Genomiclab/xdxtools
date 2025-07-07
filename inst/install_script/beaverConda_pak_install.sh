@@ -30,6 +30,8 @@ conda install -n base bioconductor-rhtslib -y
 conda install -n base r-magick -y
 conda install -n base r-rJava -y
 conda install -n base r-devtools -y
+conda install -n base r-gsmoothr -y
+conda install -n base bioconductor-rtracklayer -y
 conda install -n base -c conda-forge freetype libcurl icu libjpeg-turbo libpng libtiff libxml2 pandoc -y
 conda run -n base R -e "options ('repos' = c(CRAN ='https://mirrors.tuna.tsinghua.edu.cn/CRAN/'));
 message('>> Check install status');
@@ -37,7 +39,9 @@ installed <- installed.packages(); installed <- rownames(installed);
 pakg_install  <- function(pkg,installed = installed ){
   pkg <- pkg[!(pkg %in% installed)]
   if (length(pkg) != 0){
-    pak::pkg_install(pkg,upgrade = F,ask= FALSE, dependencies = NA)
+    for (i in 1:length(pkg)){
+    pak::pkg_install(pkg[i],upgrade = F,ask= FALSE, dependencies = NA)
+    }
   }
 };
 message('>> Install pak');
