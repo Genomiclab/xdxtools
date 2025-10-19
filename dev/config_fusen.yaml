@@ -50,3 +50,4 @@ flat_beaverdown2.Rmd:
     document: true
     overwrite: ask
     clean: ask
+    codecov: false

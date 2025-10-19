@@ -475,7 +475,7 @@ BeaverGandalf <- R6::R6Class(
     error = 0.2, 
     adapter1 = "AGATCGGAAGAGC",
     adapter2 = "AGATCGGAAGAGC", 
-    C1 = 0,C2 = 0,T1 = 0,T2 = 0,
+    C1 = "7",C2 = "9",T1 = 0,T2 = 0,
     species = NULL,species1 = "human",species2 = NULL,graft = "human", host = NULL,
     read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10,
     pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
@@ -597,7 +597,7 @@ BeaverGandalf <- R6::R6Class(
 #' @export
     initialize = function(Mode = NULL, suffix1 = "_R1.fastq.gz",suffix2 = NULL,
                           error = 0.2, adapter1 = "AGATCGGAAGAGC",adapter2 = "AGATCGGAAGAGC", 
-                          C1 = 0,C2 = 0,T1 = 0,T2 = 0,
+                          C1 = "7",C2 = "9",T1 = 0,T2 = 0,
                           species = NULL,species1 = "human",species2 = NULL,graft = "human", host = NULL,
                           read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10,
                           pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
