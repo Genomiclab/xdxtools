@@ -35,7 +35,20 @@ rule fastq2trim:
     T1={params.T1}
     T2={params.T2}
     # 构建trim_galore命令
-    command="trim_galore -e $error -j $threads --basename $basename --paired --adapter $adapter --adapter2 $adapter2 -o $dir $input1 $input2"
+    command="trim_galore -e $error -j $threads --basename $basename --paired -o $dir"
+    
+    # 仅当 adapter 不是 "NO_ADAPTER_CAL_USE_DEFAULT" 时才添加参数
+    if [ "$adapter" != "NO_ADAPTER_CAL_USE_DEFAULT" ]; then
+        command+=" --adapter $adapter"
+    fi
+    if [ "$adapter2" != "NO_ADAPTER_CAL_USE_DEFAULT" ]; then
+        command+=" --adapter2 $adapter2"
+    fi
+    
+    # 添加输入文件和其他条件参数
+    command+=" $input1 $input2"
+    
+    
     # 根据条件添加参数
     if [ "$C1" -ne 0 ]; then
     command+=" --clip_R1 $C1"
