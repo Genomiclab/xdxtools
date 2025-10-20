@@ -501,13 +501,17 @@ BeaverGandalf <- R6::R6Class(
             string <- revCompString(temp[["inline_barcode_sequence"]][1])
             string
           }
-        if( stringr::str_to_upper(Mode)  == "RRBS"){
+        
+        if (inline_barcode_revComp == ""){
+          trimSeq1[i] = "NO_ADAPTER_CAL_USE_DEFAULT"
+          trimSeq2[i] = "NO_ADAPTER_CAL_USE_DEFAULT"
+        } else if( stringr::str_to_upper(Mode)  == "RRBS"){
           trimSeq1[i] = paste0("TGA", inline_barcode_revComp, trimSeq1[i])
           trimSeq2[i] = paste0("A", inline_barcode_revComp, trimSeq2[i])
         } else {
           trimSeq1[i] = paste0(inline_barcode_revComp, trimSeq1[i])
           trimSeq2[i] = paste0(inline_barcode_revComp, trimSeq2[i])
-        }
+        } 
           
       }
       message(">> Calculate Adapters ...")
