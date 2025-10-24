@@ -670,11 +670,26 @@ BeaverGandalf <- R6::R6Class(
       self$uploadfile = uploadfile
       self$cgGR_gz = cgGR_gz
       self$CGI = CGI
-      self$gnome_fasta = list(gnome_fasta)
-      self$genomeFile = list(genomeFile)
-      self$rnaseq_gtf = list(rnaseq_gtf)
-      self$rnaseq_ref = list(rnaseq_ref)
-      self$genomeAnno = list(genomeAnno)
+      if (length(gnome_fasta) == 1){
+        gnome_fasta <- c(gnome_fasta,"placeholder")
+      }
+      self$gnome_fasta = gnome_fasta
+      if (length(genomeFile) == 1){
+        genomeFile <- c(genomeFile,"placeholder")
+      }
+      self$genomeFile = genomeFile
+      if (length(rnaseq_gtf) == 1){
+        rnaseq_gtf <- c(rnaseq_gtf,"placeholder")
+      }
+      self$rnaseq_gtf = rnaseq_gtf
+      if (length(rnaseq_ref) == 1){
+        rnaseq_ref <- c(rnaseq_ref,"placeholder")
+      }
+      self$rnaseq_ref = rnaseq_ref
+      if (length(genomeAnno) == 1){
+        genomeAnno <- c(genomeAnno,"placeholder")
+      }
+      self$genomeAnno = genomeAnno
       
       # 一些需要计算的参数
       if (is.null(species)){
@@ -891,12 +906,12 @@ BeaverGandalf <- R6::R6Class(
           
       }
       message(">> Calculate Adapters ...")
-      #if (length(trimSeq1) == 1){
-      #  trimSeq1 <- c(trimSeq1,"placeholder")
-      #  trimSeq2 <- c(trimSeq2,"placeholder")
-      #}
-      self$adapter1 <- list(trimSeq1)
-      self$adapter2 <- list(trimSeq2)
+      if (length(trimSeq1) == 1){
+        trimSeq1 <- c(trimSeq1,"placeholder")
+        trimSeq2 <- c(trimSeq2,"placeholder")
+      }
+      self$adapter1 <- trimSeq1
+      self$adapter2 <- trimSeq2
       message(">> Done!")
       self$gandalf_info()
       # complete init log for front-end display
