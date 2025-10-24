@@ -5,7 +5,7 @@ library(dplyr)
 library(fs)
 library(glue)
 
-wds <- c("/public3/home/scg9946/SRP175361")
+wds <- c("/public3/home/scg9946/SRP1016")
 for (wd in wds) {
   if (!dir.exists(wd)) dir.create(wd, recursive = TRUE)
   setwd(wd)
@@ -26,7 +26,7 @@ for (wd in wds) {
     cmd <- glue(
       "srun -p amd_512 -N1 -n1 --cpus-per-task=10 --mem=100G \\
        conda run -n sratools parallel-fastq-dump \\
-       --sra-id {sra_id} --threads 20 --outdir out/ --split-files --gzip"
+       --sra-id {sra_id} --threads 10 --outdir out/ --split-files --gzip"
     )
     message("\n>> Processing ", sra_id, " (", i, "/", length(SRRs), ")")
     message(">> Command: ", cmd)
