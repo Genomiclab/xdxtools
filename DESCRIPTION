@@ -1,6 +1,6 @@
 Package: xdxtools
 Title: Xdxtools
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: 
     person("Yanhua", "Zheng", , "zyh3084989256@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-1103-9579"))
