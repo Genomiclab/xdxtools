@@ -34,7 +34,7 @@ for (i in 1:length(htseqfiles)){
 
 message("transforming Entrezeid to Symbol")
 if (postfix == "_human.txt"){
-  Entrez_Gene_Id_db <- readRDS("inst/Entrez_Gene_Id_db.RDS")
+  Entrez_Gene_Id_db <- xdxtools::Entrez_Gene_Id_db
   matrix_count <- origin_matrix %>%
     dplyr::right_join(data.frame(Geneid = Entrez_Gene_Id_db$ENSEMBL,
                                  Gene = Entrez_Gene_Id_db$SYMBOL),
@@ -58,13 +58,7 @@ if (postfix == "_human.txt"){
     dplyr::select(-row_sum) %>%
     dplyr::relocate(Gene)
 } else {
-  library(org.Mm.eg.db)
-  Entrez_Gene_Id_db <- select(
-    org.Mm.eg.db,
-    keys = keys(org.Mm.eg.db, keytype = "ENTREZID"),
-    keytype = "ENTREZID",
-    columns = c("SYMBOL", "GENENAME", "ENSEMBL", "UNIPROT")
-  )
+  Entrez_Gene_Id_db <- xdxtools::Entrez_Gene_Id_db_mmu
   matrix_count <- origin_matrix %>%
     dplyr::right_join(data.frame(Geneid = Entrez_Gene_Id_db$UNIPROT,
                                  Gene = Entrez_Gene_Id_db$SYMBOL),

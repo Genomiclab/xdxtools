@@ -8,7 +8,7 @@ Description: A Bioinformatics Workflow Management Package for DXD data.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5)
 Imports: 
     BiocParallel,
     blastula,
