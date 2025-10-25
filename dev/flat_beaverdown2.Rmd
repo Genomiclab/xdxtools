@@ -597,7 +597,7 @@ BeaverGandalf <- R6::R6Class(
 #' @export
     initialize = function(Mode = NULL, suffix1 = "_R1.fastq.gz",suffix2 = NULL,
                           error = 0.2, adapter1 = "AGATCGGAAGAGC",adapter2 = "AGATCGGAAGAGC", 
-                          C1 = "7",C2 = "9",T1 = 0,T2 = 0,
+                          C1 = "0",C2 = "0",T1 = "0",T2 = "0",
                           species = NULL,species1 = "human",species2 = NULL,graft = "human", host = NULL,
                           read1_5 = 0,read1_3 = 0,read2_5 = 0,read2_3 = 0,seq_deth = 10,
                           pdata = NULL, uploadfile = NULL, samples = NULL,workflow_endpoint = NULL,
@@ -668,19 +668,29 @@ BeaverGandalf <- R6::R6Class(
       self$seq_deth = seq_deth
       self$pdata = pdata
       self$uploadfile = uploadfile
-      self$genomeFile = genomeFile
-      #self$cgGR = cgGR
       self$cgGR_gz = cgGR_gz
       self$CGI = CGI
+      if (length(gnome_fasta) == 1){
+        gnome_fasta <- c(gnome_fasta,"placeholder")
+      }
       self$gnome_fasta = gnome_fasta
+      if (length(genomeFile) == 1){
+        genomeFile <- c(genomeFile,"placeholder")
+      }
       self$genomeFile = genomeFile
+      if (length(rnaseq_gtf) == 1){
+        rnaseq_gtf <- c(rnaseq_gtf,"placeholder")
+      }
       self$rnaseq_gtf = rnaseq_gtf
+      if (length(rnaseq_ref) == 1){
+        rnaseq_ref <- c(rnaseq_ref,"placeholder")
+      }
       self$rnaseq_ref = rnaseq_ref
+      if (length(genomeAnno) == 1){
+        genomeAnno <- c(genomeAnno,"placeholder")
+      }
       self$genomeAnno = genomeAnno
-      #self$CGIRData = CGIRData
-      #self$CCGG = CCGG
-      #self$CpG  = CpG
-      #self$hg19_genomeFile = hg19_genomeFile
+      
       # 一些需要计算的参数
       if (is.null(species)){
         self$species <- c(species1,species2)

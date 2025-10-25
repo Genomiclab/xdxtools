@@ -15,6 +15,7 @@ QC_summary <- function(configfile){
 
   config <- yaml::read_yaml(configfile)
   SIDs <- config$SIDs
+  graft <- config$graft
   qc_df_list <- list()
   for (i in 1:length(SIDs)){
     seqkit_file <- glue::glue("{config$qcDir}/{SIDs[i]}_seqkit_stat.txt")
@@ -123,7 +124,7 @@ QC_summary <- function(configfile){
     GC_clean = (GC_R1+GC_R2)/2
 
     # bismark
-    bismarkfile = glue::glue("{config$bsmapDir}/human/{SIDs[i]}_val_1_bismark_bt2_PE_report.txt")
+    bismarkfile = glue::glue("{config$bsmapDir}/{graft}/{SIDs[i]}_val_1_bismark_bt2_PE_report.txt")
     bsmapStatT = readLines(bismarkfile)
     mapping_ratio = bsmapStatT[grep("Mapping efficiency:",bsmapStatT)] %>%
       stringr::str_split(.,":") %>%
@@ -152,7 +153,7 @@ QC_summary <- function(configfile){
       as.numeric()
     conversion_ratio = 1 - (conversion_ratio/100)
     # qualimap
-    qualimapfile = glue::glue("{config$qcDir}/qualimap/{SIDs[i]}_human/genome_results.txt")
+    qualimapfile = glue::glue("{config$qcDir}/qualimap/{SIDs[i]}_{graft}/genome_results.txt")
     message(qualimapfile)
     qualimapT = readLines(qualimapfile)
     mapping_quality = qualimapT[grep("mean mapping quality =",qualimapT)] %>%
